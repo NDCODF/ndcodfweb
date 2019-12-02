@@ -1,0 +1,15 @@
+[Unit]
+Description=NDC ODF Web WebSocket Daemon
+After=network.target
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/ndcodfweb
+ExecStart=/usr/bin/ndcodfweb
+KillSignal=SIGINT
+TimeoutStopSec=120
+User=lool
+KillMode=control-group
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

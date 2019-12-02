@@ -1,0 +1,6 @@
+## Path:	Network/Remote access/OXLOOLWSD
+## Description:	NDC ODF Web WebSocket Daemon settings
+## Type:	string
+## Default:	""
+## ServiceRestart: ndcodfweb
+#
