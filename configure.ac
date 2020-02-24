@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.63])
 
-AC_INIT([ndcodfweb], [1.1.0], [develop@ossii.com.tw])
+AC_INIT([ndcodfweb], [1.1.2], [develop@ossii.com.tw])
 LT_INIT([shared, disable-static, dlopen])
 
 AM_INIT_AUTOMAKE([1.10 subdir-objects tar-pax -Wno-portability])
@@ -638,7 +638,7 @@ AC_SUBST(LOOLWSD_CACHEDIR)
 LOOLWSD_CONFIGDIR=${sysconfdir}/${PACKAGE}
 AC_SUBST(LOOLWSD_CONFIGDIR)
 
-LOOLWSD_DATADIR=${datadir}/${PACKAGE}
+LOOLWSD_DATADIR=${prefix}/share/${PACKAGE}
 AC_SUBST(LOOLWSD_DATADIR)
 
 AS_IF([test "$enable_setcap" != "no"],
@@ -670,7 +670,7 @@ AC_CONFIG_FILES([Makefile
                  loleaflet/npm-shrinkwrap.json
                  ndcodfweb.spec
                  ndcodfweb.xml
-                 debian/loolwsd.postinst])
+                 debian/ndcodfweb.postinst])
 AC_OUTPUT
 
 AC_LANG_POP

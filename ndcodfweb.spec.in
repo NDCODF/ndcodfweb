@@ -53,14 +53,6 @@ make %{?_smp_mflags}
 
 %__install -D -m 444 %{name}.service %{buildroot}%{_unitdir}/%{name}.service
 
-install -d -m 755 %{buildroot}/var/adm/fillup-templates
-mkdir -p %{buildroot}/etc/cron.d
-echo "#Remove old tiles once every 10 days at midnight" > %{buildroot}/etc/cron.d/%{name}.cron
-echo "0 0 */1 * * root find /var/cache/%{name} -type f -a -atime +10 -exec rm {} \;" >> %{buildroot}/etc/cron.d/%{name}.cron
-mkdir -p %{buildroot}/etc/pam.d
-echo "auth       required     pam_unix.so" > %{buildroot}/etc/pam.d/%{name}
-echo "account    required     pam_unix.so" >>  %{buildroot}/etc/pam.d/%{name}
-
 %files
 %{_bindir}/*
 /usr/share/fonts/SourceHan/*.ttc

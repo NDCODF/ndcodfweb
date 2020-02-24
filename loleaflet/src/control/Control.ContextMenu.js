@@ -93,6 +93,7 @@ L.Control.ContextMenu = L.Control.extend({
 			selector: '.leaflet-layer',
 			className: 'loleaflet-font',
 			trigger: 'none',
+			zIndex: 1100,
 			build: function() {
 				return {
 					callback: function(key) {
@@ -130,6 +131,7 @@ L.Control.ContextMenu = L.Control.extend({
 					contextMenu['sep' + sepIdx++] = this.options.SEPARATOR;
 				}
 				isLastItemText = false;
+				continue;
 			}
 			else if (item.type === 'command') {
 				// Only show whitelisted items
@@ -148,32 +150,14 @@ L.Control.ContextMenu = L.Control.extend({
 				// Get the translated text associated with the command
 				itemName = _UNO(item.command, docType, true);
 
-				/*switch (commandName) {
-				case 'Cut':
-					itemName = _('Internal Cut');
-					break;
-				case 'Copy':
-					itemName = _('Internal Copy');
-					break;
-				case 'Paste':
-					itemName = _('Internal Paste');
-					break;
-				}*/
-
 				contextMenu[item.command] = {
 					name: _(itemName)
 				};
 
-				if (item.checktype === 'checkmark') {
-					if (item.checked === 'true') {
-						contextMenu[item.command]['icon'] = 'lo-checkmark';
-					}
-				} else if (item.checktype === 'radio') {
-					if (item.checked === 'true') {
-						contextMenu[item.command]['icon'] = 'radio';
-					}
+				if (item.checktype !== undefined) {
+					contextMenu[item.command].checktype = item.checktype;
+					contextMenu[item.command].checked = (item.checked === 'true');
 				}
-
 				isLastItemText = true;
 			} else if (item.type === 'menu') {
 				itemName = item.text;
@@ -191,7 +175,12 @@ L.Control.ContextMenu = L.Control.extend({
 					items: submenu
 				};
 				isLastItemText = true;
+			} else {
+				console.debug('未知的 item.type', item);
 			}
+			contextMenu[item.command].icon = (function(opt, $itemElement, itemKey, item) {
+				return this._map.contextMenuIcon($itemElement, itemKey, item);
+			}).bind(this)
 		}
 
 		// Remove separator, if present, at the end
@@ -201,7 +190,7 @@ L.Control.ContextMenu = L.Control.extend({
 		}
 
 		return contextMenu;
-	}
+	},
 });
 
 L.control.contextMenu = function (options) {

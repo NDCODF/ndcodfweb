@@ -711,6 +711,8 @@ std::set<const Poco::Util::AbstractConfiguration*> LOOLWSD::PluginConfigurations
 std::chrono::time_point<std::chrono::system_clock> LOOLWSD::StartTime;
 
 static std::string UnitTestLibrary;
+// Add by Firefly <firefly@ossii.com.tw>
+static bool ConvertToEnabled = false;
 
 unsigned int LOOLWSD::NumPreSpawnedChildren = 0;
 std::unique_ptr<TraceFileWriter> LOOLWSD::TraceDumper;
@@ -777,6 +779,7 @@ void LOOLWSD::initialize(Application& self)
             { "admin_console.enable_pam", "false" },
             { "child_root_path", "jails" },
             { "file_server_root_path", "loleaflet/.." },
+            { "convert_to", "false" },
             { "lo_jail_subpath", "lo" },
             { "lo_template_path", LO_PATH },
             { "logging.anonymize.filenames", "false" },
@@ -822,6 +825,7 @@ void LOOLWSD::initialize(Application& self)
             { "security.capabilities", "true" },
             { "security.seccomp", "true" },
             { "server_name", "" },
+            { "client_port_number", "9980" },
             { "ssl.ca_file_path", LOOLWSD_CONFIGDIR "/ca-chain.cert.pem" },
             { "ssl.cert_file_path", LOOLWSD_CONFIGDIR "/cert.pem" },
             { "ssl.enable", "true" },
@@ -880,6 +884,9 @@ void LOOLWSD::initialize(Application& self)
 
     // Allow UT to manipulate before using configuration values.
     UnitWSD::get().configure(config());
+
+    // Add by Firefly <firefly@ossii.com.tw>
+    ConvertToEnabled = getConfigValue<bool>(conf, "convert_to", false);
 
     // Set the log-level after complete initialization to force maximum details at startup.
     LogLevel = getConfigValue<std::string>(conf, "logging.level", "trace");
@@ -1031,6 +1038,7 @@ void LOOLWSD::initialize(Application& self)
     LoTemplate = getPathFromConfig("lo_template_path");
     ChildRoot = getPathFromConfig("child_root_path");
     ServerName = config().getString("server_name");
+    ClientPortNumber = config().getUInt("client_port_number", DEFAULT_CLIENT_PORT_NUMBER);
 
     FileServerRoot = getPathFromConfig("file_server_root_path");
     NumPreSpawnedChildren = getConfigValue<int>(conf, "num_prespawn_children", 1);
@@ -2400,7 +2408,7 @@ private:
         std::shared_ptr<StreamSocket> socket = _socket.lock();
 
         StringTokenizer tokens(request.getURI(), "/?");
-        if (tokens.count() > 2 && tokens[2] == "convert-to")
+        if (tokens.count() > 2 && tokens[2] == "convert-to" && ConvertToEnabled)
         {
             ConvertToPartHandler handler(/*convertTo =*/ true);
             HTMLForm form(request, message, handler);
@@ -2858,7 +2866,7 @@ private:
 
         // Can the convert-to be used?
         Poco::JSON::Object::Ptr convert_to = new Poco::JSON::Object;
-        Poco::Dynamic::Var available = allowConvertTo(socket->clientAddress(), request);
+        Poco::Dynamic::Var available = ConvertToEnabled && allowConvertTo(socket->clientAddress(), request);
         convert_to->set("available", available);
 
         Poco::JSON::Object::Ptr capabilities = new Poco::JSON::Object;
