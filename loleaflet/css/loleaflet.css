@@ -1,6 +1,6 @@
 #document-container {
 	border-top: 1px solid #B6B6B6;
-	background: #DFDFDF;
+	background: #efefef;
 	position: absolute;
 	top: 72px;
 	bottom: 37px;
@@ -13,7 +13,7 @@
 }
 
 #document-container.readonly {
-    top: 41px;
+    top: 31px;
 }
 
 #toolbar-wrapper.readonly {
@@ -100,8 +100,19 @@
 	cursor: move;
 }
 
+.table-column-select-cursor {
+	cursor: url('images/cursors/tblsels.png') 16 30,
+		url('images/cursors/tblsels.cur'),
+		pointer;
+}
+
+.table-row-select-cursor {
+	cursor: url('images/cursors/tblsele.png') 30 16,
+		url('images/cursors/tblsele.cur'),
+		pointer;
+}
+
 body {
-    font-family: Arial, "Liberation Sans", "Microsoft JhengHei", "Heiti TC", "Noto Sans TC", "Source Han Sans TC", sans-serif;
     margin: 0;
     overflow: hidden;
     overscroll-behavior-y: none; /* disable the pull to reload gesture */
@@ -124,7 +135,7 @@ body {
 }
 
 #presentation-controls-wrapper.readonly {
-    top: 41px;
+    top: 31px;
 }
 
 #sidebar-dock-wrapper {
@@ -281,7 +292,6 @@ body {
 }
 
 .loleaflet-font {
-    font-family: Arial, "Liberation Sans", "Microsoft JhengHei", "Heiti TC", "Noto Sans TC", "Source Han Sans TC", sans-serif;
     font-size: 14px !important;
     font-weight: normal !important;
 }
@@ -297,7 +307,6 @@ body {
 }
 
 .loleaflet-controls {
-    	font-family: Arial, "Liberation Sans", "Microsoft JhengHei", "Heiti TC", "Noto Sans TC", "Source Han Sans TC", sans-serif;
 	margin-right: 10px;
 }
 
@@ -345,9 +354,11 @@ body {
 
 /* Important to override context-menu-icon's font-family here otherwise, jquery-contextmenu.css
  * will try to load its own font file which is not available in dist/ */
-.context-menu-icon::before {
-	font-family: Arial, "Liberation Sans", "Microsoft JhengHei", "Heiti TC", "Noto Sans TC", "Source Han Sans TC", sans-serif !important;
+.context-menu-item {
+	padding-left: 48px !important;
+	line-height: 20px !important;
 }
+
 .context-menu-icon-lo-checkmark:before {
 	content: '\2713';
 }
@@ -363,7 +374,6 @@ body {
 
 .loleaflet-annotation-content-wrapper, .loleaflet-annotation-redline-content-wrapper {
 	padding: 8px;
-	font-family: Arial, "Liberation Sans", "Microsoft JhengHei", "Heiti TC", "Noto Sans TC", "Source Han Sans TC", sans-serif;
 	font-size: 14px;
 	text-align: left;
 	background-color: #efefef;
@@ -406,7 +416,6 @@ body {
 }
 
 .loleaflet-annotation-textarea {
-	font-family: Arial, "Liberation Sans", "Microsoft JhengHei", "Heiti TC", "Noto Sans TC", "Source Han Sans TC", sans-serif !important;
 	font-size: 14px;
 	border: 1px solid #c8c8c8;
 	background-color: white;
@@ -579,17 +588,6 @@ body {
 	cursor: pointer;
 }
 
-.oxtabs_container.ui-widget-content {
-	border: none;
-}
-
-.oxdialog_container.ui-dialog.ui-widget-content {
-	padding: 0px;
-	width: auto;
-	height: auto;
-	z-index: 1105;
-}
-
 .lokdialog_container.lokdialog_notitle .ui-dialog-titlebar {
 	display: none;
 }
@@ -620,12 +618,44 @@ body {
         -o-user-select: none;
 }
 
-.ui-dialog-titlebar {
-    padding: 0 1em !important;
+body,
+input,
+.lo-menu a,
+.lo-menu a:hover,
+.lo-menu a:focus,
+.lo-menu a:active,
+.vex.vex-theme-default .vex-content, 
+.loleaflet-font,
+.loleaflet-controls,
+.context-menu-icon,
+.loleaflet-annotation-content-wrapper,
+.loleaflet-annotation-redline-content-wrapper,
+.loleaflet-annotation-textarea,
+.spreadsheet-tab,
+.ui-widget,
+.ui-widget input,
+.ui-widget select,
+.ui-widget textarea,
+.ui-widget button {
+    font-family: Arial, "Liberation Sans", "Microsoft JhengHei", "Heiti TC", "Noto Sans TC", "Source Han Sans TC", sans-serif !important;
 }
 
-.ui-widget {
-    font-family: Arial, "Liberation Sans", "Microsoft JhengHei", "Heiti TC", "Noto Sans TC", "Source Han Sans TC", sans-serif !important;
+.ui-dialog {
+	-webkit-box-shadow: 0 2px 5px rgba(0, 0, 0, .5);
+	 box-shadow: 0 2px 5px rgba(0, 0, 0, .5);
+}
+
+.ui-dialog .ui-dialog-buttonpane {
+	margin-top: .2em !important;
+	padding: .3em .4em .2em .4em !important;
+}
+
+.ui-dialog-titlebar {
+	padding: 3px !important;
+}
+
+.ui-dialog-buttonpane button {
+	margin: .1em .4em .1em 0 !important;
 }
 
 .vex { z-index: 10000 !important;}

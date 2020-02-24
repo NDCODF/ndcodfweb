@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -e
+
+case "$1" in
+    remove)
+	rm -f /var/log/ndcodfweb.log
+	rm -fr /var/cache/ndcodfweb
+	rm -fr /opt/ndcodfweb
+	;;
+
+esac
+
+#DEBHELPER#

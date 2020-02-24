@@ -244,6 +244,7 @@ L.Map = L.Evented.extend({
 
 	loadDocument: function() {
 		this._socket.connect();
+		this.removeObjectFocusDarkOverlay();
 	},
 
 	sendInitUNOCommands: function() {
@@ -313,8 +314,7 @@ L.Map = L.Evented.extend({
 	initializeModificationIndicator: function() {
 		var lastModButton = L.DomUtil.get('menu-last-mod');
 		if (lastModButton !== null && lastModButton !== undefined
-			&& lastModButton.firstChild.innerHTML !== null
-			&& lastModButton.firstChild.childElementCount == 0) {
+			&& lastModButton.firstChild.innerHTML !== null) {
 			var mainSpan = document.createElement('span');
 			var label = document.createTextNode(_('Last modification'));
 			var separator = document.createTextNode(': ');
@@ -331,6 +331,11 @@ L.Map = L.Evented.extend({
 
 			if (revHistoryEnabled) {
 				L.DomUtil.setStyle(lastModButton, 'cursor', 'pointer');
+				var map = this;
+				// 點選的話，發送檢視檔案歷程訊息
+				$(lastModButton).click(function () {
+					map.fire('postMessage', {msgId: 'UI_FileVersions'});
+				});
 			}
 		}
 	},
@@ -1548,7 +1553,25 @@ L.Map = L.Evented.extend({
 		moveObjectVertically($('#document-container'), height);
 		moveObjectVertically($('#presentation-controls-wrapper'), height);
 		moveObjectVertically($('#sidebar-dock-wrapper'), height);
-	}
+	},
+
+	hasObjectFocusDarkOverlay: function() {
+		return !!this.focusLayer;
+	},
+
+	addObjectFocusDarkOverlay: function(xTwips, yTwips, wTwips, hTwips) {
+		if (!this.hasObjectFocusDarkOverlay()) {
+			this.focusLayer = new L.ObjectFocusDarkOverlay().addTo(this);
+			this.focusLayer.show({x: xTwips, y: yTwips, w: wTwips, h: hTwips});
+		}
+	},
+
+	removeObjectFocusDarkOverlay: function() {
+		if (this.hasObjectFocusDarkOverlay()) {
+			this.removeLayer(this.focusLayer);
+			this.focusLayer = null;
+		}
+	},
 });
 
 L.map = function (id, options) {

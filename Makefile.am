@@ -48,6 +48,12 @@ sourcehanfonts_DATA = SourceHan/SourceHanSans-Regular.ttc \
 sudoersdir = ${sysconfdir}/sudoers.d
 sudoers_DATA = etc/sudoers.d/lool
 
+crondir = ${sysconfdir}/cron.d
+cron_DATA = etc/cron.d/ndcodfweb.cron
+
+pamdir = ${sysconfdir}/pam.d
+pam_DATA = etc/pam.d/ndcodfweb
+
 servicesysconfigdir = ${sysconfdir}/sysconfig
 servicesysconfig_DATA = etc/sysconfig/ndcodfweb
 
@@ -261,18 +267,20 @@ EXTRA_DIST = discovery.xml \
              ndcodfweb.service \
              debian/compat \
              debian/copyright \
-             debian/loolwsd.cron.d \
-             debian/loolwsd.preinst \
-             debian/loolwsd.service \
+             debian/ndcodfweb.preinst \
+             debian/ndcodfweb.service \
              debian/rules \
              debian/source/format \
              debian/changelog \
              debian/control \
-             debian/loolwsd.postinst \
+             debian/ndcodfweb.postinst \
+             debian/ndcodfweb.postrm \
              etc/key.pem \
              etc/cert.pem \
              etc/ca-chain.cert.pem \
              etc/sudoers.d/lool \
+             etc/cron.d/ndcodfweb.cron \
+             etc/pam.d/ndcodfweb \
              etc/sysconfig/ndcodfweb \
 	     SourceHan/50-oxool.conf \
 	     SourceHan/SourceHanSans-Regular.ttc \

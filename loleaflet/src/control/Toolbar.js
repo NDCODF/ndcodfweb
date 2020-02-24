@@ -26,6 +26,114 @@ L.Map.include({
 		}
 	},
 
+	_iconAlias: {
+		'addtextbox': 'insertfixedtext',
+		'anchormenu': 'toggleanchortype',
+		'arrangeframemenu': 'bringtofront',
+		'arrangemenu': 'bringtofront',
+		'autoformatmenu': 'autocorrectdlg',
+		'basicshapes.ellipse': 'ellipse',
+		'basicshapes': 'basicshapes.diamond',
+		'basicshapes.rectangle': 'rect',
+		'ellipsetoolbox': 'ellipse',
+		'linetoolbox': 'freeline_unfilled',
+		'rectangletoolbox': 'rect',
+		'basicshapes.round-rectangle': 'rect_rounded',
+		'basicshapes.parallelogram': 'flowchartshapes.flowchart-data',
+		'basicshapes.quadrat': 'square',
+		'basicshapes.circle': 'circle',
+		'basicshapes.circle-pie': 'pie',
+		'basicshapes.frame': 'rect_unfilled',
+		'symbolshapes.smiley': 'symbolshapes',
+		'arrowshapes.left-right-arrow': 'arrowshapes',
+		'calloutshapes.round-rectangular-callout': 'calloutshapes',
+		'flowchartshapes.flowchart-process': 'square',
+		'flowchartshapes.flowchart-alternate-process': 'basicshapes.round-quadrat',
+		'flowchartshapes.flowchart-manual-operation': 'basicshapes.trapezoid',
+		'flowchartshapes.flowchart-connector': 'circle',
+		'flowchartshapes.flowchart-extract': 'basicshapes.isosceles-triangle',
+		'flowchartshapes.flowchart-merge': 'fontworkshapetype.fontwork-triangle-down',
+		'flowchartshapes.flowchart-magnetic-disk': 'basicshapes.can',
+		'bulletliststyle': 'defaultbullet',
+		'changesmenu': 'trackchanges',
+		'charactermenu': 'fontdialog',
+		'commonalignleft': 'alignleft',
+		'commonalignhorizontalcenter': 'alignhorizontalcenter',
+		'commonalignright': 'alignright',
+		'commonalignjustified': 'alignblock',
+		'commonaligntop': 'aligntop',
+		'commonalignverticalcenter' : 'alignverticalcenter',
+		'commonalignbottom': 'alignbottom',
+		'convertmenu': 'bezierconvert',
+		'deletecell': 'delete',
+		'deletenote': 'deleteannotation',
+		'drawtext': 'text',
+		'editshapehyperlink': 'edithyperlink',
+		'deleteshapehyperlink': 'removehyperlink',
+		'openhyperlinkoncursor': 'inserthyperlink',
+		'flipmenu': 'mirror',
+		'fliphorizontal': 'mirror',
+		'flipvertical': 'mirrorvert',
+		'footnotecellstyles': 'insertfootnote',
+		'formatarea': 'backgroundcolor',
+		'formatbulletsmenu': 'defaultbullet',
+		'formatspacingmenu': 'spacepara15',
+		'formatstylesmenu': 'colorscaleformatdialog',
+		'conditionalformatmenu': 'colorscaleformatdialog',
+		'formattextmenu': 'fontdialog',
+		'gridmenu': 'gridvisible',
+		'groupmenu': 'group',
+		'hyperlinkdialog': 'inserthyperlink',
+		'indexesmenu': 'insertindexesentry',
+		'insertannotation': 'shownote',
+		'insertauthorfield': 'dbviewaliases',
+		'insertcurrentdate': 'datefield',
+		'insertcurrenttime': 'timefield',
+		'insertrowbreak': 'insertpagebreak',
+		'insertcell': 'insertcellsright',
+		'insertcolumnsmenu': 'insertcolumns',
+		'insertdatefield' : 'datefield',
+		'insertfield': 'addfield',
+		'insertheaderfootermenu': 'editheaderandfooter',
+		'insertobjectchart': 'drawchart',
+		'insertrowsmenu': 'insertrows',
+		'inserttimefield' : 'timefield',
+		'languagemenu': 'managelanguage',
+		'mirrorhorz': 'mirror',
+		'mirrormenu': 'rotateleft',
+		'movepagedown': 'downsearch',
+		'movepageup': 'upsearch',
+		'namegroup': 'definename',
+		'notecellstyles': 'showannotations',
+		'numberingmenu': 'outlinebullet',
+		'numberliststyle': 'defaultnumbering',
+		'objectalign': 'objectalignleft',
+		'objectmirrorhorizontal': 'mirror',
+		'objectmirrorvertical': 'mirrorvert',
+		'objecttitledescription': 'insertcaptiondialog',
+		'pageformatdialog': 'pagedialog',
+		'paragraphmenu': 'paragraphdialog',
+		'previoustrackedchange': 'prevrecord',
+		'nexttrackedchange': 'nextrecord',
+		'rotateflipmenu': 'rotateleft',
+		'savegraphic': 'save',
+		'setdefault': 'resetattributes',
+		'setobjecttobackground': 'sendtoback',
+		'showruler': 'ruler',
+		'showtrackedchanges': 'addwatch',
+		'slidesetup': 'pagesetup',
+		'spellingandgrammardialog': 'spelling',
+		'tableautofitmenu': 'setoptimalrowheight',
+		'tableinsertmenu': 'insertrowsafter',
+		'tabledeletemenu': 'deletetable',
+		'tableselectmenu': 'selecttable',
+		'textalign': 'alignblock',
+		'textattributes': 'fontdialog',
+		'wrapmenu': 'wrapon',
+		'zoomminus': 'zoomout',
+		'zoomplus': 'zoomin',
+	},
+
 	applyFont: function (fontName) {
 		if (this.getPermission() === 'edit') {
 			var msg = 'uno .uno:CharFontName {' +
@@ -170,6 +278,33 @@ L.Map.include({
 			//----------------------------------------
 			this._socket.sendMessage('uno ' + command + (json ? ' ' + JSON.stringify(json) : ''));
 		}
+	},
+
+	// Add by Firefly <firefly@ossii.com.tw>
+	// 依據 itemKey 設定右鍵選單 icon 圖示
+	contextMenuIcon: function($itemElement, itemKey, item) {
+		var hasinit = $itemElement.hasClass('_init_');
+		if (hasinit) {return '';}
+		$itemElement.addClass('_init_')
+		// 設定 icon
+		var icon = L.DomUtil.create('i', 'menuicon img-icon');
+		var iconURL = 'url("' + this.getUnoCommandIcon(itemKey) + '")';
+		$(icon).css('background-image', iconURL);
+		$itemElement.append(icon);
+		// 如果有 checktype
+		if (item.checktype !== undefined && item.checked) {
+			$itemElement.addClass('lo-menu-item-checked');
+		}
+		return '';
+	},
+
+	// Add by Firefly <firefly@ossii.com.tw>
+	// 把 uno 指令轉換成 icon 圖示 URL
+	getUnoCommandIcon: function(unoCommand) {
+		var command = (unoCommand.startsWith('.uno:') ? unoCommand.substr(5) : unoCommand).toLowerCase();
+		var icon = this._iconAlias[command] !== undefined ? this._iconAlias[command] : command;
+
+		return 'images/cmd/' + icon + '.svg';
 	},
 
 	toggleCommandState: function (unoState) {

@@ -275,6 +275,8 @@ bool ChildSession::_handleInput(const char *buffer, int length)
                tokens[0] == "mouse" ||
                tokens[0] == "windowmouse" ||
                tokens[0] == "uno" ||
+               tokens[0] == "getunostates" ||
+               tokens[0] == "runmacro" ||
                tokens[0] == "selecttext" ||
                tokens[0] == "selectgraphic" ||
                tokens[0] == "resetselection" ||
@@ -341,6 +343,14 @@ bool ChildSession::_handleInput(const char *buffer, int length)
         else if (tokens[0] == "uno")
         {
             return unoCommand(buffer, length, tokens);
+        }
+        else if (tokens[0] == "getunostates")
+        {
+            return unoStates(buffer, length, tokens);
+        }
+        else if (tokens[0] == "runmacro")
+        {
+            return runMacro(buffer, length, tokens);
         }
         else if (tokens[0] == "selecttext")
         {
@@ -454,7 +464,7 @@ bool ChildSession::loadDocument(const char * /*buffer*/, int /*length*/, const s
     if (!doctemplate.empty())
     {
         std::string url = getJailedFilePath();
-        bool success = getLOKitDocument()->saveAs(url.c_str(), nullptr, nullptr);
+        bool success = getLOKitDocument()->saveAs(url.c_str(), nullptr, "TakeOwnership");
         if (!success)
         {
             LOG_ERR("Failed to save template [" << getJailedFilePath() << "].");
@@ -1102,7 +1112,8 @@ bool ChildSession::unoCommand(const char* /*buffer*/, int /*length*/, const std:
     if (found_prefix == 0)
     {
         std::size_t found_left = tokens[1].find("(", 0);
-        std::string macroFile = "/tmp/" + tokens[1].substr(9, found_left - 9 );
+        std::string macroCmd = tokens[1].substr(9, found_left - 9 );
+        std::string macroFile = "/tmp/" + macroCmd;
         if (File(macroFile).exists())
         {
             LOG_DBG("Macro result return file exist: " + macroFile); 
@@ -1110,7 +1121,7 @@ bool ChildSession::unoCommand(const char* /*buffer*/, int /*length*/, const std:
             std::ostringstream ostr;
             Poco::StreamCopier::copyStream(istr, ostr);
             LOG_DBG("Macro result: " + ostr.str());
-            sendTextFrame("macroresult: " + ostr.str());
+            sendTextFrame("macroresult: " + macroCmd + ":" + ostr.str());
         }
         else
         {
@@ -1119,6 +1130,43 @@ bool ChildSession::unoCommand(const char* /*buffer*/, int /*length*/, const std:
     }
     //--------------------------------------------------------
     return true;
+}
+
+// Add by Firefly <firefly@ossii.com.tw>
+// 送出 getunostates .uno:Acommand,.uno:Bcommand[,.uno:Ccommand] 到後端 Office
+bool ChildSession::unoStates(const char* buffer, int size, const std::vector<std::string>& tokens)
+{
+    if (tokens.size() <= 1)
+    {
+        sendTextFrame("error: cmd=getunostates kind=.uno:Acommand,.uno:Bcommand[,.uno:Ccommand]");
+        return false;
+    }
+
+    LOG_DBG("Get UNO command state lists: " + tokens[1]);
+
+    std::unique_lock<std::mutex> lock(_docManager.getDocumentMutex());
+    getLOKitDocument()->setView(_viewId);
+
+    char* values = getLOKitDocument()->getCommandValues(std::string(buffer, size).c_str());
+    std::free(values);
+    return true;
+}
+
+bool ChildSession::runMacro(const char* /*buffer*/, int /*size*/, const std::vector<std::string>& tokens)
+{
+    if (tokens.size() <= 1)
+    {
+        sendTextFrame("error: cmd=runmacro kind=macro:///Library.module.macro()");
+        return false;
+    }
+
+    std::unique_lock<std::mutex> lock(_docManager.getDocumentMutex());
+    getLOKitDocument()->setView(_viewId);
+
+    bool ret = getLOKit()->runMacro(tokens[1].c_str());
+    LOG_DBG("Run macro : " + tokens[1] + " -> " + (ret ? "success." : "fail."));
+
+    return ret;
 }
 
 bool ChildSession::selectText(const char* /*buffer*/, int /*length*/, const std::vector<std::string>& tokens)
@@ -1157,24 +1205,29 @@ bool ChildSession::renderWindow(const char* /*buffer*/, int /*length*/, const st
     int bufferWidth = 800, bufferHeight = 600;
     double dpiScale = 1.0;
     std::string paintRectangle;
-    if (tokens.size() > 2 && getTokenString(tokens[2], "rectangle", paintRectangle))
+    if (tokens.size() > 2 && getTokenString(tokens[2], "rectangle", paintRectangle)
+        && paintRectangle != "undefined")
     {
-        const std::vector<std::string> rectParts = LOOLProtocol::tokenize(paintRectangle.c_str(), paintRectangle.length(), ',');
-        startX = std::atoi(rectParts[0].c_str());
-        startY = std::atoi(rectParts[1].c_str());
-        bufferWidth = std::atoi(rectParts[2].c_str());
-        bufferHeight = std::atoi(rectParts[3].c_str());
-
-        std::string dpiScaleString;
-        if (tokens.size() > 3 && getTokenString(tokens[3], "dpiscale", dpiScaleString))
+        const std::vector<std::string> rectParts
+            = LOOLProtocol::tokenize(paintRectangle.c_str(), paintRectangle.length(), ',');
+        if (rectParts.size() == 4)
         {
-            dpiScale = std::stod(dpiScaleString);
-            if (dpiScale < 0.001)
-                dpiScale = 1.0;
+            startX = std::atoi(rectParts[0].c_str());
+            startY = std::atoi(rectParts[1].c_str());
+            bufferWidth = std::atoi(rectParts[2].c_str());
+            bufferHeight = std::atoi(rectParts[3].c_str());
         }
     }
     else
         LOG_WRN("windowpaint command doesn't specify a rectangle= attribute.");
+
+    std::string dpiScaleString;
+    if (tokens.size() > 3 && getTokenString(tokens[3], "dpiscale", dpiScaleString))
+    {
+        dpiScale = std::stod(dpiScaleString);
+        if (dpiScale < 0.001)
+            dpiScale = 1.0;
+    }
 
     size_t pixmapDataSize = 4 * bufferWidth * bufferHeight;
     std::vector<unsigned char> pixmap(pixmapDataSize);
@@ -1526,7 +1579,7 @@ bool ChildSession::selectClientPart(const char* /*buffer*/, int /*length*/, cons
     {
         if (nPart != getLOKitDocument()->getPart())
         {
-            //getLOKitDocument()->selectPart(nPart, nSelect);
+            getLOKitDocument()->selectPart(nPart, nSelect);
 
             // Notify the client of the selection update.
             const std::string status = LOKitHelper::documentStatus(getLOKitDocument()->get());
@@ -1557,7 +1610,7 @@ bool ChildSession::moveSelectedClientParts(const char* /*buffer*/, int /*length*
     getLOKitDocument()->setView(_viewId);
     if (getLOKitDocument()->getDocumentType() != LOK_DOCTYPE_TEXT)
     {
-        //getLOKitDocument()->moveSelectedParts(nPosition, false); // Move, don't duplicate.
+        getLOKitDocument()->moveSelectedParts(nPosition, false); // Move, don't duplicate.
 
         // Get the status to notify clients of the reordering and selection change.
         const std::string status = LOKitHelper::documentStatus(getLOKitDocument()->get());

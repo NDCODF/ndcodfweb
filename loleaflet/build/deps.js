@@ -46,7 +46,9 @@ var deps = {
 
 	TileLayer: {
 		src: ['layer/tile/TileLayer.js',
-			'layer/tile/TileLayer.TableOverlay.js'],
+		      'layer/tile/TileLayer.TableOverlay.js',
+		      'layer/ObjectFocusDarkOverlay.js'
+		],
 		desc: 'The base class for displaying tile layers on the map.',
 		deps: ['GridLayer']
 	},
@@ -350,13 +352,6 @@ var deps = {
 		desc: 'Dialogs'
 	},
 
-	ControlMacroProcess: {
-		src: ['control/Control.js',
-		      'control/Control.MacroProcess.js'],
-		heading: 'Controls',
-		desc: 'Macro Process'
-	},
-
 	ControlTabs: {
 		src: ['control/Control.js',
 		      'dom/DomEvent.js',
@@ -452,6 +447,11 @@ var deps = {
 	Ruler: {
 		src: ['control/Ruler.js'],
 		desc: 'Ruler to be displayed on the map.'
+	},
+
+	Macro: {
+		src: ['control/Macro.js'],
+		desc: 'Macro handler.'
 	},
 
 	AnimationPan: {

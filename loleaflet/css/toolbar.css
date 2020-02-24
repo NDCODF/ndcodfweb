@@ -14,11 +14,11 @@
 	box-shadow: 0 1px 3px 1px #00000050;
 }
 
-@media (max-width: 767px), (max-device-height: 767px) {
+/*@media (max-width: 767px), (max-device-height: 767px) {
 	#mCSB_2_dragger_horizontal, #mCSB_1_dragger_horizontal {
 		display: none !important;
 	}
-}
+}*/
 
 #toolbar-up.w2ui-toolbar {
     left: 0;
@@ -26,7 +26,6 @@
     height: 41px;
     padding-left: 9px;
     text-align: center;
-    /*z-index: 999;*/
     overflow: visible !important;
 }
 
@@ -38,7 +37,6 @@
     position: fixed;
     bottom: 0;
     height: 37px;
-    /*z-index: 1000;*/
     border-top: 1px solid #bbbbbb;
 }
 
@@ -270,13 +268,11 @@ button.leaflet-control-search-next
 /* select box */
 .select2-results__option {
     padding: 5px;
-    font-family: Arial, "Liberation Sans", "Microsoft JhengHei", "Heiti TC", "Noto Sans TC", "Source Han Sans TC", sans-serif;
     font-size: 14px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .select2-selection__rendered {
-    font-family: Arial, "Liberation Sans", "Microsoft JhengHei", "Heiti TC", "Noto Sans TC", "Source Han Sans TC", sans-serif;
     font-size: 14px;
 }
 .styles-select {
@@ -411,6 +407,13 @@ button.leaflet-control-search-next
     width: 30px;
     border: 1px solid transparent;
     background: rgba(255, 255, 255, 1);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    -moz-background-size:contain;
+    -webkit-background-size:contain;
+    -o-background-size:contain;
+    cursor: pointer;
 }
 
 .insertshape-grid .row-header {
@@ -431,10 +434,11 @@ button.leaflet-control-search-next
     padding: 2px;
     display: block;
     overflow: auto; /* child margins otherwise don't expand *this* element (parent) */
+    width: 148px;
 }
 
 .animationeffects-grid .row {
-    height: 32px;
+    height: 30px;
 }
 
 .animationeffects-grid .col {
@@ -444,6 +448,13 @@ button.leaflet-control-search-next
     width: 32px;
     border: 1px solid transparent;
     background: rgba(255, 255, 255, 1);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    -moz-background-size:contain;
+    -webkit-background-size:contain;
+    -o-background-size:contain;
+    cursor: pointer;
 }
 
 .animationeffects-grid .col:hover {

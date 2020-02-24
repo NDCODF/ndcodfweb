@@ -270,23 +270,6 @@ L.Map.Keyboard = L.Handler.extend({
 		if (!inputEle) {
 			inputEle = this._map._clipboardContainer.activeElement();
 		}
-		// Add by Firefly
-		// 加入組字功能，補足 _onKeyDown 缺漏部份
-		if (e.type === 'compositionstart') {
-			this._isComposing = true;
-		} else if (e.type === 'compositionupdate') {
-			compEventFn('input', e.originalEvent.data);
-		} else if (e.type === 'compositionend') {
-			this._isComposing = false;
-			compEventFn('end', e.originalEvent.data);
-		}
-		if (e.type === 'textInput' && !this._keyHandled && !this._isComposing) {
-			var data = e.originalEvent.data;
-			for (var idx = 0; idx < data.length; idx++) {
-				compEventFn('input', data[idx].charCodeAt());
-			}
-		}
-		//---------------------------------
 		this.modifier = 0;
 		var shift = e.originalEvent.shiftKey ? this.keyModifier.shift : 0;
 		var ctrl = e.originalEvent.ctrlKey ? this.keyModifier.ctrl : 0;
@@ -424,12 +407,36 @@ L.Map.Keyboard = L.Handler.extend({
 		L.DomEvent.stopPropagation(e.originalEvent);
 	},
 
+	// Add by Firefly <firefly@ossii.com.tw>
+	// 指定 winId 的輸入法處理程序(對話框)
+	_onPrivateIME: function (e, id) {
+		switch (e.type)
+		{
+		case 'compositionstart':
+			this._isComposing = true;
+			break;
+		case 'compositionupdate':
+			this._map._docLayer._postCompositionEvent(id, 'input', e.data);
+			break;
+		case 'compositionend':
+			this._isComposing = false;
+			this._map._docLayer._postCompositionEvent(id, 'end', e.data);
+			break;
+		case 'textInput':
+			if (!this._keyHandled && !this._isComposing) {
+				this._map._docLayer._postCompositionEvent(id, 'input', e.data);
+				this._map._docLayer._postCompositionEvent(id, 'end', e.data);
+			}
+			break;
+		}
+	},
+
 	_onIME: function (e) {
 		this._map.notifyActive();
 		var viewId = this._map._docLayer._viewId;
 		var viewInfo = this._map._viewInfo[viewId];
 		// 是否只有自己在編輯
-		var onlyMe = (!viewInfo || Object.keys(this._map._viewInfo).length === 1);
+		var onlyMe = false; /*(!viewInfo || Object.keys(this._map._viewInfo).length === 1);*/
 		// 輸入區容器
 		var clipboardContainer = this._map._clipboardContainer._container;
 		// 輸入區 input html element

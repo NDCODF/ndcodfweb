@@ -1,7 +1,7 @@
 #main-menu {
     top: 0;
     height: 31px;
-    z-index: 1000;
+    z-index: 100;
     outline: none;
     float: left;
     background-color: transparent;
@@ -84,15 +84,18 @@ serif;
 
 .menuicon, .menuicon:hover {
     position: absolute;
-    top: 7px;
-    left: 12px; /* 選單 ICON 前空白 */
+    left: 24px; /* 選單 ICON 前空白 */
 }
 
 .img-icon {
-    height: 16px;
-    width: 16px;
-    display: inline-block;
-    top: 6px;
+    height: 18px;
+    width: 18px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    -moz-background-size:contain;
+    -webkit-background-size:contain;
+    -o-background-size:contain;
 }
 
 /* item */
@@ -116,7 +119,6 @@ serif;
 }
 
 .lo-menu a, .lo-menu a:hover, .lo-menu a:focus, .lo-menu a:active {
-    font-family: Arial, "Liberation Sans", "Microsoft JhengHei", "Heiti TC", "Noto Sans TC", "Source Han Sans TC", sans-serif;
     font-size: 16px;
     line-height: 18px;
 }
@@ -132,7 +134,6 @@ serif;
     padding-left: 15px;
     padding-right: 15px;
     padding-top: 8px;
-   /*z-index: 500;*/
     border-left: 1px solid #fafafa;
     border-right: 1px solid #fafafa;
 }
@@ -150,7 +151,7 @@ serif;
 
 /* Menu Item */
 .lo-menu a, .lo-menu a:hover, .lo-menu a:focus, .lo-menu a:active, .lo-menu a.highlighted {
-    padding: 5px 104px 5px 36px; /* ICON */
+    padding: 5px 104px 5px 48px; /* ICON */
     color: #000;
 }
 .lo-menu a:hover, .lo-menu a:focus, .lo-menu a:active, .lo-menu a.highlighted {
@@ -171,7 +172,6 @@ serif;
 }
 .lo-menu > li > ul {
     margin-top: -1px !important;
-    /*z-index: 400;*/
 }
 .lo-menu > li > a span.sub-arrow {
     display: none;
@@ -212,7 +212,6 @@ serif;
 /* Mobile menu toggle button */
 
 .main-menu-btn {
-    /*z-index: 2000;*/
     float: right;
     top: 5px;
     margin: 2px 10px;
@@ -315,7 +314,6 @@ serif;
         margin: 0;
         -webkit-overflow-scrolling: touch;
         overflow: scroll;
-        /*z-index: 1010;*/
     }
 
     #main-menu {
@@ -347,8 +345,7 @@ serif;
     position: absolute;
     content: '\2713';
     color: blue;
-    left: 12px;
-    top: 5px;
+    left: 8px;
 }
 
 .lo-menu-item-checked:hover::before {
@@ -358,9 +355,6 @@ serif;
 #menu-last-mod a {
     color: grey;
     font-size: 12px;
-    margin-top: 3px;
+    line-height: 30px;
     text-decoration: underline;
-    padding: 4px 4px 4px 4px;
-    /*z-index: 500;*/
-    border: 1px solid transparent;
 }

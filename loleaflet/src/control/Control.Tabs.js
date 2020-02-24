@@ -18,9 +18,6 @@ L.Control.Tabs = L.Control.extend({
 		if (!this._initialized) {
 			this._initialize();
 		}
-		setTimeout(function() {
-			$('.spreadsheet-tab').contextMenu(e.perm === 'edit');
-		}, 100);
 
 		if (window.mode.isMobile() == true) {
 			if (e.perm === 'edit') {
@@ -52,21 +49,46 @@ L.Control.Tabs = L.Control.extend({
 			},
 			this);
 
+		map.on('updateparts', this._updateDisabled, this);
+
+		if (this._map._permission !== 'edit')
+			return;
+
 		L.installContextMenu({
 			selector: '.spreadsheet-tab',
 			className: 'loleaflet-font',
+			autoHide: true,
 			callback: (function(key) {
-				if (key === 'insertsheetbefore') {
+				if (key === 'InsertColumnsAfter') {
 					map.insertPage(this._tabForContextMenu);
 				}
-				if (key === 'insertsheetafter') {
+				if (key === 'InsertColumnsBefore') {
 					map.insertPage(this._tabForContextMenu + 1);
 				}
 			}).bind(this),
 			items: {
-				'insertsheetbefore': {name: _('Insert sheet before this')},
-				'insertsheetafter': {name: _('Insert sheet after this')},
-				'deletesheet': {name: _UNO('.uno:Remove', 'spreadsheet', true),
+				'InsertColumnsAfter': {
+					name: _('Insert sheet before this'),
+					icon: (function(opt, $itemElement, itemKey, item) {
+						return this._map.contextMenuIcon($itemElement, itemKey, item);
+					}).bind(this)
+				},
+				'InsertColumnsBefore': {
+					name: _('Insert sheet after this'),
+					icon: (function(opt, $itemElement, itemKey, item) {
+						return this._map.contextMenuIcon($itemElement, itemKey, item);
+					}).bind(this)
+				},
+				'DuplicatePage': {
+					name: _UNO('.uno:Move', 'spreadsheet', true),
+					callback: (function() {
+						that._movePart();
+					}).bind(this),
+					icon: (function(opt, $itemElement, itemKey, item) {
+						return this._map.contextMenuIcon($itemElement, itemKey, item);
+					}).bind(this)
+				},
+				'DeleteTable': {name: _UNO('.uno:Remove', 'spreadsheet', true),
 						callback: (function(key, options) {
 							var nPos = this._tabForContextMenu;
 							vex.dialog.confirm({
@@ -77,15 +99,21 @@ L.Control.Tabs = L.Control.extend({
 									}
 								}
 							});
+						}).bind(this),
+						icon: (function(opt, $itemElement, itemKey, item) {
+							return this._map.contextMenuIcon($itemElement, itemKey, item);
 						}).bind(this)
 				 },
-				'renamesheet': {name: _UNO('.uno:RenameTable', 'spreadsheet', true),
+				'DBTableRename': {name: _UNO('.uno:RenameTable', 'spreadsheet', true),
 							callback: (function(key, options) {
 								var nPos = this._tabForContextMenu;
 								vex.dialog.open({
 									message: _('Enter new sheet name'),
 									input: '<input name="sheetname" type="text" value="' + options.$trigger.text() + '" required />',
 									callback: function(data) {
+										if (!data)
+											return;
+
 										if (map.isSheetnameValid(data.sheetname, nPos)) {
 											map.renamePage(data.sheetname, nPos);
 										} else {
@@ -94,25 +122,33 @@ L.Control.Tabs = L.Control.extend({
 										}
 									}
 								});
+							}).bind(this),
+							icon: (function(opt, $itemElement, itemKey, item) {
+								return this._map.contextMenuIcon($itemElement, itemKey, item);
 							}).bind(this)
 				} ,
-				'showsheets': {
+				'sep01': '----',
+				'Show': {
 					name: _UNO('.uno:Show', 'spreadsheet', true),
 					callback: (function() {
 						that._showPage();
+					}).bind(this),
+					icon: (function(opt, $itemElement, itemKey, item) {
+						return this._map.contextMenuIcon($itemElement, itemKey, item);
 					}).bind(this)
 				},
-				'hiddensheets': {
+				'Hide': {
 					name: _UNO('.uno:Hide', 'spreadsheet', true),
 					callback: (function() {
 						map.hidePage();
+					}).bind(this),
+					icon: (function(opt, $itemElement, itemKey, item) {
+						return this._map.contextMenuIcon($itemElement, itemKey, item);
 					}).bind(this)
 				}
 			},
 			zIndex: 1000
 		});
-
-		map.on('updateparts', this._updateDisabled, this);
 	},
 
 	_showPage: function () {
@@ -136,6 +172,55 @@ L.Control.Tabs = L.Control.extend({
 			callback: function(data) {
 				for (var sheet in data) {
 					map.showPage(sheet);
+				}
+			}
+		});
+	},
+
+	_movePart: function () {
+		var map = this._map;
+		var partNames = map._docLayer._partNames;
+		var currPart = map.getCurrentPartNumber();
+		var options = '';
+		for (var i = 0 ; i < partNames.length ; i++) {
+			if (!map.isHiddenPart(i)) {
+				options += '<option value="' + (i+1) + '">' + partNames[i] + '</option>';
+			}
+		}
+		options += '<option value="32767">' + _('- move to end position -') + '</option>';
+		vex.dialog.open({
+			message: _UNO('.uno:Move', 'spreadsheet', true),
+			input: [
+				'<div><input type="radio" id="movepart" name="copypart" value="false" checked><label for="movepart"> ' + _('Move') + '</label>&emsp;&emsp;&emsp;&emsp;' +
+				'<input type="radio" id="copypart" name="copypart" value="true"><label for="copypart"> ' + _('Copy') + '</label></div>',
+				'<div><b>' + _('Insert before') + '</b></div>',
+				'<select name="moveTo" size="10" style="font-size:16px; width: 100%;">' + options + '</select>'
+			],
+			callback: function (data) {
+				if (data !== undefined) {
+					// 移動或複製
+					var copy = (data.copypart === 'true');
+					var pos = data.moveTo;
+					if (pos === undefined) {
+						pos = currPart + 2;
+						if (pos > partNames.length)
+							pos = 32767; // 最後
+					}
+					var params = {
+						'DocName': {
+							'type': 'string',
+							'value': map.getDocName()
+						},
+						'Index': {
+							'type': 'long',
+							'value': pos
+						},
+						'Copy': {
+							'type': 'boolean',
+							'value': copy
+						}
+					}
+					map.sendUnoCommand('.uno:Move', params);
 				}
 			}
 		});
@@ -187,8 +272,8 @@ L.Control.Tabs = L.Control.extend({
 					L.DomEvent
 						.on(tab, 'click', L.DomEvent.stopPropagation)
 						.on(tab, 'click', L.DomEvent.stop)
-						.on(tab, 'click', this._setPart, this)
-						.on(tab, 'click', this._map.focus, this._map);
+						.on(tab, 'mousedown', this._setPart, this)
+						.on(tab, 'mousedown', this._map.focus, this._map);
 					this._spreadsheetTabs[id] = tab;
 				}
 			}
