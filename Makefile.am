@@ -12,7 +12,7 @@ SUBDIRS = gtk loleaflet
 
 else
 
-SUBDIRS = . loleaflet extensions modules
+SUBDIRS = . loleaflet extensions fonts modules
 
 export ENABLE_DEBUG
 
@@ -37,13 +37,6 @@ oxoolwsddatadir = @LOOLWSD_DATADIR@
 
 oxoolwsddata_DATA = discovery.xml \
                    favicon.ico
-
-fontconfigdir = ${sysconfdir}/fonts/conf.d
-fontconfig_DATA = SourceHan/50-oxool.conf
-
-sourcehanfontsdir = ${datarootdir}/fonts/SourceHan
-sourcehanfonts_DATA = SourceHan/SourceHanSans-Regular.ttc \
-		      SourceHan/SourceHanSans-Bold.ttc
 
 sudoersdir = ${sysconfdir}/sudoers.d
 sudoers_DATA = etc/sudoers.d/lool
@@ -283,9 +276,6 @@ EXTRA_DIST = discovery.xml \
              etc/cron.d/ndcodfweb.cron \
              etc/pam.d/ndcodfweb \
              etc/sysconfig/ndcodfweb \
-	     SourceHan/50-oxool.conf \
-	     SourceHan/SourceHanSans-Regular.ttc \
-	     SourceHan/SourceHanSans-Bold.ttc \
              scripts/unocommands.py \
              $(man_MANS) \
 			 modules

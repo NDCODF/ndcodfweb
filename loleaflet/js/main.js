@@ -33,6 +33,7 @@ if (host === '' && !window.ThisIsAMobileApp) {
 }
 var brandProductName = 'NDC ODF Web';
 global.brandProductName = brandProductName;
+global.brandProductFAQURL = 'https://www.ossii.com.tw/';
 // loleaflet.js accesses these globals
 // TODO: Get rid of these globals
 global.closebutton = closebutton;

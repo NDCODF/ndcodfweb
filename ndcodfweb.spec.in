@@ -58,12 +58,13 @@ mkdir -p %{buildroot}/var/lib/%{name}/templaterepo
 
 %files
 %{_bindir}/*
-/usr/share/fonts/SourceHan/*.ttc
 %dir /usr/share/%{name}
 /usr/share/%{name}/loleaflet
 /usr/share/%{name}/discovery.xml
 /usr/share/%{name}/favicon.ico
 /usr/share/%{name}/extensions
+/etc/fonts/conf.d/*.conf
+%dir %attr(755, lool, root) /usr/share/fonts/%{name}
 /usr/share/doc/%{name}/README
 /usr/share/doc/%{name}/README.vars
 /usr/share/doc/%{name}/protocol.txt
@@ -76,7 +77,6 @@ mkdir -p %{buildroot}/var/lib/%{name}/templaterepo
 %config(noreplace) /etc/cron.d/%{name}.cron
 %config(noreplace) /etc/pam.d/%{name}
 %config(noreplace) %attr(640, lool, root) /etc/%{name}/%{name}.xml
-%config /etc/fonts/conf.d/50-oxool.conf
 %config /etc/%{name}/*.xcu
 %config(noreplace) /etc/%{name}/*.pem
 %config %attr(440, root, root) /etc/sudoers.d/lool
@@ -103,6 +103,7 @@ mkdir -p /var/cache/%{name} && chown lool:lool /var/cache/%{name}
 rm -rf /var/cache/%{name}/*
 
 touch /var/log/%{name}.log && chown lool:lool /var/log/%{name}.log
+touch /var/log/templaterepo.log && chown lool:lool /var/log/templaterepo.log
 
 # Figure out where LO is installed, let's hope it is not a mount point
 # Create a directory for oxloolwsd on the same file system
@@ -141,6 +142,7 @@ fc-cache -f
 if [ $arg = 0 ] ; then
     # log file
     rm -f /var/log/%{name}.log
+    rm -f /var/log/templaterepo.log
     # cache dir
     rm -fr /var/cache/%{name}
     # systemplate & child root

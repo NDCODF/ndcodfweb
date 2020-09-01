@@ -225,6 +225,16 @@ L.Control.Menubar = L.Control.extend({
 				{type: '--'},
 				{name: '.uno:AutoFormatMenu', type: 'menu', menu: [
 					{uno: '.uno:OnlineAutoFormat'}]},
+				{type: '--'},
+				{name: _('Binding line'), type: 'menu', menu: [
+					{name: _('Insert on the left side of page'), id: 'macro:///OxOOL.BindingLine.insertLeft()'},
+					{name: _('Insert on the right side of page'), id: 'macro:///OxOOL.BindingLine.insertRight()'},
+					{name: _('Insert on the top side of page'), id: 'macro:///OxOOL.BindingLine.insertTop()'},
+					{name: _('Insert on the bottom side of page'), id: 'macro:///OxOOL.BindingLine.insertBottom()'},
+					{type: '--'},
+					{name: _('Customize'), id: 'dialog:BindingLineDialog'},
+
+				]},
 			]},
 			{name: '.uno:HelpMenu', id: 'help', type: 'menu', menu: [
 				{name: _('Keyboard shortcuts'), id: 'keyboard-shortcuts', type: 'action', icon: '.uno:HelpIndex', hotkey: 'Ctel+Shift+?'},
@@ -548,20 +558,24 @@ L.Control.Menubar = L.Control.extend({
 		}
 	},
 
-	_onRefresh: function() {
-		// 非編輯模式，不顯示選單，所以也沒必要載入選單
-		if (this._map._permission !== 'edit') {
+	_onRefresh: function(e) {
+		if (!this._initialized) {
+			// clear initial menu
+			while (this._menubarCont.hasChildNodes()) {
+				this._menubarCont.removeChild(this._menubarCont.firstChild);
+			}
+			// Add document specific menu
+			this._loadMenubar(this._map.getDocType());
+			this._createFileIcon();
+			this._bindMenuEvent();
+			this._initialized = true;
+		}
+		// 非編輯模式或手機模式時，不顯示選單
+		if (e.perm !== 'edit' || L.Browser.mobile) {
 			$('.main-nav').hide();
 			return;
 		}
-		// clear initial menu
-		while (this._menubarCont.hasChildNodes()) {
-			this._menubarCont.removeChild(this._menubarCont.firstChild);
-		}
-
-		// Add document specific menu
-		this._loadMenubar(this._map.getDocType());
-		this._createFileIcon();
+		$('.main-nav').show();
 	},
 
 	_onStyleMenu: function (e) {
@@ -588,14 +602,6 @@ L.Control.Menubar = L.Control.extend({
 	},
 
 	_onDocLayerInit: function() {
-		$('#main-menu').bind('select.smapi', {self: this}, this._onItemSelected);
-		$('#main-menu').bind('mouseenter.smapi', {self: this}, this._onMouseEnter);
-		$('#main-menu').bind('mouseleave.smapi', {self: this}, this._onMouseLeave);
-
-		$('#main-menu').bind('beforeshow.smapi', {self: this}, this._beforeShow);
-		$('#main-menu').bind('click.smapi', {self: this}, this._onClicked);
-
-		$('#main-menu').bind('keydown', {self: this}, this._onKeyDown);
 		/*
 		// SmartMenus mobile menu toggle button
 		$(function() {
@@ -622,7 +628,17 @@ L.Control.Menubar = L.Control.extend({
 			}
 		});
 */
-		this._initialized = true;
+	},
+
+	_bindMenuEvent: function() {
+		$('#main-menu').bind('select.smapi', {self: this}, this._onItemSelected);
+		$('#main-menu').bind('mouseenter.smapi', {self: this}, this._onMouseEnter);
+		$('#main-menu').bind('mouseleave.smapi', {self: this}, this._onMouseLeave);
+
+		$('#main-menu').bind('beforeshow.smapi', {self: this}, this._beforeShow);
+		$('#main-menu').bind('click.smapi', {self: this}, this._onClicked);
+
+		$('#main-menu').bind('keydown', {self: this}, this._onKeyDown);
 	},
 
 	_onClicked: function(e, menu) {
@@ -843,6 +859,7 @@ L.Control.Menubar = L.Control.extend({
 		this._level ++;
 		// -------------------------------------
 		for (var i in menu) {
+/*
 			if (menu[i].id === 'about' && (L.DomUtil.get('about-dialog') === null)) {
 				continue;
 			}
@@ -872,7 +889,7 @@ L.Control.Menubar = L.Control.extend({
 				}
 				if (!found)
 					continue;
-			}
+			} */
 
 			if ((menu[i].id === 'rev-history' && !revHistoryEnabled) ||
 				(menu[i].id === 'closedocument' && !closebutton)) {

@@ -1,3 +1,15 @@
+ndcodfweb (1.1.9-1) unstable; urgency=low
+
+  * Bump package version to 1.1.9-1
+
+ -- Firefly <firefly@ossii.com.tw>  Wed, 29 Jul 2020 17:37:37 +0800
+
+ndcodfweb (1.1.8-1) unstable; urgency=low
+
+  * Bump package version to 1.1.8-1
+
+ -- Firefly <firefly@ossii.com.tw>  Wed, 24 Jun 2020 16:02:29 +0800
+
 ndcodfweb (1.1.7-1) unstable; urgency=low
 
   * Bump package version to 1.1.7-1

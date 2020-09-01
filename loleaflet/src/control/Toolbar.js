@@ -335,6 +335,20 @@ L.Map.include({
 			options = '';
 		}
 
+		// 如果是下載或列印 pdf，而且 server 也沒有指定浮水印的話
+		// 就詢問使用者是否加浮水印
+		if (format === 'pdf' && this.options.watermark === undefined) {
+			this.fire('executeDialog', {
+				dialog: 'PdfWatermarkText',
+				args: {
+					name: name,
+					id: id,
+					options: options
+				}
+			});
+			return;
+		}
+
 		this.showBusy(_('Downloading...'), false);
 		this._socket.sendMessage('downloadas ' +
 			'name=' + encodeURIComponent(name) + ' ' +
@@ -605,13 +619,16 @@ L.Map.include({
 			if (commandData === undefined) {
 				commandData = this._whiteCommandList[command];
 			}
-			var uno = false, dialog = false, action = false, callback = false;
+			var uno = false, macro = false, dialog = false, action = false, callback = false;
 			// 有找到且該指令沒被隱藏
 			if (commandData !== undefined && commandData.hide !== true) {
 				// 指令開頭是 .uno:，直接執行
 				if (command.startsWith('.uno:')) {
 					this.sendUnoCommand(command);
 					uno = true;
+				} else if (command.startsWith('macro:///')) {
+					this.sendMacroCommand(command);
+					macro = true;
 				// 指令開頭是 dialog:，執行該 dialog
 				} else if (command.startsWith('dialog:')) {
 					var args = {};
@@ -648,7 +665,7 @@ L.Map.include({
 				}
 			}
 			// uno 指令或 callback 有一項被執行，才能算成功
-			result = (uno | dialog | action | callback);
+			result = (uno | macro | dialog | action | callback);
 		}
 		return result;
 	},
