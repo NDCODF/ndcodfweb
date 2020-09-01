@@ -30,7 +30,7 @@
            host = 'ws://' + window.location.host + '%SERVICE_ROOT%/lool/adminws/'
         }
 
-        Admin.Analytics(host);
+        var socketAnalytics = Admin.Analytics(host);
         Admin.GlobalFunction(host);
     </script>
 
@@ -60,6 +60,7 @@
             <li><a href="admin.html"><script>document.write(l10nstrings.strOverview)</script></a></li>
             <li class="active"><a href="adminAnalytics.html"><script>document.write(l10nstrings.strAnalytics);</script> <span class="sr-only"><script>document.write(l10nstrings.strCurrent)</script></span></a></li>
             <li><a href="adminHistory.html"><script>document.write(l10nstrings.strHistory)</script></a></li>
+			<li><a href="adminTemplateRepo.html"><script>document.write("範本中心")</script></a></li>
           </ul>
         </div>
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
@@ -84,7 +85,7 @@
             <div id="memview" class="active tab-pane">
               <div class="graph-container">
                 <div>
-                  <svg id="MemVisualisation" width="1010" height="510"></svg>
+                  <svg id="MemVisualisation" width="1100" height="600"></svg>
                 </div>
               </div>
             </div>

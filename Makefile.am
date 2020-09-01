@@ -12,7 +12,7 @@ SUBDIRS = gtk loleaflet
 
 else
 
-SUBDIRS = . loleaflet extensions
+SUBDIRS = . loleaflet extensions modules
 
 export ENABLE_DEBUG
 
@@ -170,6 +170,7 @@ clientnb_SOURCES = net/clientnb.cpp \
                    common/Log.cpp \
                    common/Util.cpp
 
+
 ndcodfwebmount_SOURCES = tools/mount.cpp
 
 ndcodfwebmap_SOURCES = tools/map.cpp
@@ -286,7 +287,9 @@ EXTRA_DIST = discovery.xml \
 	     SourceHan/SourceHanSans-Regular.ttc \
 	     SourceHan/SourceHanSans-Bold.ttc \
              scripts/unocommands.py \
-             $(man_MANS)
+             $(man_MANS) \
+			 modules
+
 
 if HAVE_LO_PATH
 
@@ -313,6 +316,7 @@ run: all @TILECACHE_PATH@ @JAILS_PATH@
 	@cp $(abs_top_srcdir)/test/data/hello.odt $(abs_top_srcdir)/test/data/hello-world.odt
 	@cp $(abs_top_srcdir)/test/data/hello.ods $(abs_top_srcdir)/test/data/hello-world.ods
 	@cp $(abs_top_srcdir)/test/data/hello.odp $(abs_top_srcdir)/test/data/hello-world.odp
+	@cp $(abs_top_srcdir)/modules/.libs/libtemplaterepo.so.0.0.0 $(abs_top_srcdir)/libtemplaterepo.so
 	@echo
 	LOOL_SERVE_FROM_FS=1 ./ndcodfweb --o:sys_template_path="@SYSTEMPLATE_PATH@" --o:lo_template_path="@LO_PATH@" \
 			  --o:file_server_root_path="$(abs_top_srcdir)" \

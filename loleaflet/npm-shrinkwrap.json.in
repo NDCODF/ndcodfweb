@@ -1838,9 +1838,13 @@
       "dev": true
     },
     "jquery-ui": {
-      "version": "1.10.5",
-      "resolved": "file:node_shrinkwrap/jquery-ui-1.10.5.tgz",
-      "integrity": "sha1-gmrtPdH4jTKudddN9IZD3EMaWBU=",
+      "version": "1.12.1",
+      "resolved": "file:node_shrinkwrap/jquery-ui-1.12.1.tgz",
+      "dev": true
+    },
+    "jquery-ui-touch-punch": {
+      "version": "0.2.3",
+      "resolved": "file:node_shrinkwrap/jquery-ui-touch-punch-0.2.3.tgz",
       "dev": true
     },
     "js-yaml": {
@@ -2729,9 +2733,8 @@
       "dev": true
     },
     "smartmenus": {
-      "version": "1.0.0",
-      "resolved": "file:node_shrinkwrap/smartmenus-1.0.0.tgz",
-      "integrity": "sha1-I0eRsyetTbSFwC0wSckne+f4o78=",
+      "version": "1.1.0",
+      "resolved": "file:node_shrinkwrap/smartmenus-1.1.0.tgz",
       "dev": true,
       "requires": {
         "jquery": "2.2.4"
@@ -2922,20 +2925,6 @@
         "readable-stream": "2.3.6",
         "xtend": "4.0.1"
       }
-    },
-    "timeago": {
-      "version": "1.5.3",
-      "resolved": "file:node_shrinkwrap/timeago-1.5.3.tgz",
-      "integrity": "sha1-YqpDG3As98Uy4mrjyOJIhV5N1IA=",
-      "dev": true,
-      "requires": {
-        "jquery": "2.2.4"
-      }
-    },
-    "timeago.js": {
-      "version": "4.0.0-beta.1",
-      "resolved": "file:node_shrinkwrap/timeago.js-4.0.0-beta.1.tgz",
-      "dev": true
     },
     "timers-browserify": {
       "version": "1.4.2",

@@ -1,0 +1,9 @@
+<config>
+    <template>
+        <dir_path type="string">/var/lib/ndcodfweb/templaterepo/templates/</dir_path>
+        <db_path type="string">/var/lib/ndcodfweb/templaterepo/templaterepo.sqlite</db_path>
+    </template>
+    <logging>
+        <log_file type="string">/tmp/templaterepo.log</log_file>
+    </logging>
+</config>

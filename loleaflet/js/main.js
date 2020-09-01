@@ -75,7 +75,6 @@ map.menubar = menubar;
 map.addControl(menubar);
 setupToolbar(map);
 map.addControl(L.control.dialogs());
-map.addControl(L.control.macroprocess());
 map.addControl(L.control.scroll());
 map.addControl(L.control.alertDialog());
 map.addControl(L.control.lokDialog());
@@ -89,9 +88,10 @@ map.loadDocument();
 
 window.addEventListener('beforeunload', function () {
 	if (map && map._socket) {
+		map.forceCellCommit();
 		map._socket.close();
 	}
-});
+}, true);
 
 if (!L.Browser.mobile) {
 	L.DomEvent.on(document, 'contextmenu', L.DomEvent.preventDefault);

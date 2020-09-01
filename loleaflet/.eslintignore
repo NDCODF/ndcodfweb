@@ -5,3 +5,8 @@
 #
 # This is way too ugly for eslint...
 **/js/jquery.mCustomScrollbar.js
+
+#ForModuleSource
+#**/admin/src/AdminSocketMacIp.js
+**/js/datatables.min.js
+**/css/datatables.min.css

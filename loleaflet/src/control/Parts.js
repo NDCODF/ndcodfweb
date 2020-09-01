@@ -181,19 +181,9 @@ L.Map.include({
 		else if (typeof (page) === 'number' && page >= 0 && page < docLayer._pages) {
 			docLayer._currentPage = page;
 		}
-		if (!window.mode.isMobile() && this._permission !== 'edit' && docLayer._partPageRectanglesPixels.length > docLayer._currentPage) {
-			// we can scroll to the desired page without having a LOK instance
-			var pageBounds = docLayer._partPageRectanglesPixels[docLayer._currentPage];
-			var pos = new L.Point(
-					pageBounds.min.x + (pageBounds.max.x - pageBounds.min.x) / 2,
-					pageBounds.min.y);
-			pos.y -= this.getSize().y / 4; // offset by a quater of the viewing area so that the previous page is visible
-			this.scrollTop(pos.y, {update: true});
-			this.scrollLeft(pos.x, {update: true});
-		}
-		else {
-			this._socket.sendMessage('setpage page=' + docLayer._currentPage);
-		}
+
+		// 直接跳頁
+		this._socket.sendMessage('setpage page=' + docLayer._currentPage);
 		this.fire('pagenumberchanged', {
 			currentPage: docLayer._currentPage,
 			pages: docLayer._pages,
@@ -206,6 +196,7 @@ L.Map.include({
 			this._socket.sendMessage('uno .uno:InsertPage');
 		}
 		else if (this.getDocType() === 'spreadsheet') {
+			this.forceCellCommit();
 			var command = {
 				'Name': {
 					'type': 'string',
@@ -262,6 +253,7 @@ L.Map.include({
 			this._socket.sendMessage('uno .uno:DeletePage');
 		}
 		else if (this.getDocType() === 'spreadsheet') {
+			this.forceCellCommit();
 			var command = {
 				'Index': {
 					'type': 'long',
@@ -323,6 +315,7 @@ L.Map.include({
 
 	showPage: function (sheetName) {
 		if (this.getDocType() === 'spreadsheet' && this.hasAnyHiddenPart()) {
+			this.forceCellCommit();
 			var args = {
 				'aTableName': {
 					type: 'string',
@@ -335,6 +328,7 @@ L.Map.include({
 
 	hidePage: function () {
 		if (this.getDocType() === 'spreadsheet' && this.getNumberOfVisibleParts() > 1) {
+			this.forceCellCommit();
 			this._socket.sendMessage('uno .uno:Hide');
 		}
 	},
@@ -375,6 +369,19 @@ L.Map.include({
 		return isValid;
 	},
 
+
+	/*
+	 * 取得文件檔名(含副檔名)
+	 */
+	getFileName: function() {
+		var file = this.options.wopi ? this.wopi.BaseFileName : this.options.doc;
+		var idx = file.lastIndexOf('/');
+		return file.substr(idx + 1);
+	},
+
+	/*
+	 * 取得文件檔名(不含副檔名)
+	 */
 	getDocName: function () {
 		var file = this.options.wopi ? this.wopi.BaseFileName : this.options.doc;
 		var idx = file.lastIndexOf('.');
@@ -441,5 +448,5 @@ L.Map.include({
 			return null;
 
 		return this._docLayer._docType;
-	}
+	},
 });

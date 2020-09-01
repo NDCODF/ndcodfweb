@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.63])
 
-AC_INIT([ndcodfweb], [1.1.2], [develop@ossii.com.tw])
+AC_INIT([ndcodfweb], [1.1.7], [develop@ossii.com.tw])
 LT_INIT([shared, disable-static, dlopen])
 
 AM_INIT_AUTOMAKE([1.10 subdir-objects tar-pax -Wno-portability])
@@ -530,7 +530,7 @@ else
 fi
 AC_SUBST(ENABLE_SUPPORT_KEY)
 
-LIBS="$LIBS -lPocoNet${POCO_DEBUG_SUFFIX} -lPocoNetSSL${POCO_DEBUG_SUFFIX} -lPocoUtil${POCO_DEBUG_SUFFIX} -lPocoJSON${POCO_DEBUG_SUFFIX} -lPocoXML${POCO_DEBUG_SUFFIX} -lPocoFoundation${POCO_DEBUG_SUFFIX} -lPocoCrypto${POCO_DEBUG_SUFFIX}"
+LIBS="$LIBS -lPocoNet${POCO_DEBUG_SUFFIX} -lPocoNetSSL${POCO_DEBUG_SUFFIX} -lPocoUtil${POCO_DEBUG_SUFFIX} -lPocoJSON${POCO_DEBUG_SUFFIX} -lPocoXML${POCO_DEBUG_SUFFIX} -lPocoFoundation${POCO_DEBUG_SUFFIX} -lPocoCrypto${POCO_DEBUG_SUFFIX}  -lPocoDataSQLite${POCO_DEBUG_SUFFIX} -lPocoZip${POCO_DEBUG_SUFFIX} -lPocoData${POCO_DEBUG_SUFFIX}"
 
 AS_IF([test "$ENABLE_SSL" = "true"],
       [LIBS="$LIBS -lssl -lcrypto"])
@@ -667,6 +667,7 @@ AC_CONFIG_FILES([Makefile
                  Mobile/Mobile/Info.plist
                  loleaflet/Makefile
                  extensions/Makefile
+                 modules/Makefile
                  loleaflet/npm-shrinkwrap.json
                  ndcodfweb.spec
                  ndcodfweb.xml

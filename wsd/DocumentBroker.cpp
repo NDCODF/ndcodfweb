@@ -300,14 +300,24 @@ void DocumentBroker::pollThread()
             lastBWUpdateTime = now;
             uint64_t sent, recv;
             getIOStats(sent, recv);
+
+            uint64_t deltaSent = 0, deltaRecv = 0;
+
+            // connection drop transiently reduces this.
+            if (sent > adminSent)
+            {
+                deltaSent = sent - adminSent;
+                adminSent = sent;
+            }
+            if (recv > deltaRecv)
+            {
+                deltaRecv = recv - adminRecv;
+                adminRecv = recv;
+            }
+            LOG_TRC("Doc [" << _docKey << "] added stats sent: +" << deltaSent << ", recv: +" << deltaRecv << " bytes to totals.");
+
             // send change since last notification.
-            Admin::instance().addBytes(getDocKey(),
-                                       // connection drop transiently reduces this.
-                                       (sent > adminSent ? (sent - adminSent): uint64_t(0)),
-                                       (recv > adminRecv ? (recv - adminRecv): uint64_t(0)));
-            adminSent = sent;
-            adminRecv = recv;
-            LOG_TRC("Doc [" << _docKey << "] added stats sent: " << sent << ", recv: " << recv << " bytes to totals.");
+            Admin::instance().addBytes(getDocKey(), deltaSent, deltaRecv);
         }
 #endif
 
@@ -519,7 +529,8 @@ bool DocumentBroker::load(const std::shared_ptr<ClientSession>& session, const s
     WopiStorage* wopiStorage = dynamic_cast<WopiStorage*>(_storage.get());
     if (wopiStorage != nullptr)
     {
-        std::unique_ptr<WopiStorage::WOPIFileInfo> wopifileinfo = wopiStorage->getWOPIFileInfo(session->getAuthorization());
+        std::unique_ptr<WopiStorage::WOPIFileInfo> wopifileinfo
+            = wopiStorage->getWOPIFileInfo(session->getAuthorization(), session->getCookies());
         userId = wopifileinfo->getUserId();
         username = wopifileinfo->getUsername();
         userExtraInfo = wopifileinfo->getUserExtraInfo();
@@ -632,10 +643,7 @@ bool DocumentBroker::load(const std::shared_ptr<ClientSession>& session, const s
     session->setUserName(username);
     session->setUserExtraInfo(userExtraInfo);
     session->setWatermarkText(watermarkText);
-    if(!watermarkText.empty())
-        session->setHash(watermarkText);
-    else
-        session->setHash(0);
+    session->recalcCanonicalViewId(_sessions);
 
     // Basic file information was stored by the above getWOPIFileInfo() or getLocalFileInfo() calls
     const StorageBase::FileInfo fileInfo = _storage->getFileInfo();
@@ -678,7 +686,8 @@ bool DocumentBroker::load(const std::shared_ptr<ClientSession>& session, const s
     // Let's load the document now, if not loaded.
     if (!_storage->isLoaded())
     {
-        std::string localPath = _storage->loadStorageFileToLocal(session->getAuthorization(), templateSource);
+        std::string localPath = _storage->loadStorageFileToLocal(
+            session->getAuthorization(), session->getCookies(), templateSource);
 
 #ifndef MOBILEAPP
         // Check if we have a prefilter "plugin" for this document format
@@ -886,7 +895,9 @@ bool DocumentBroker::saveToStorageInternal(const std::string& sessionId, bool su
     LOG_DBG("Persisting [" << _docKey << "] after saving to URI [" << uriAnonym << "].");
 
     assert(_storage && _tileCache);
-    StorageBase::SaveResult storageSaveResult = _storage->saveLocalFileToStorage(auth, saveAsPath, saveAsFilename, isRename);
+    const std::string cookies = it->second->getCookies();
+    const StorageBase::SaveResult storageSaveResult
+        = _storage->saveLocalFileToStorage(auth, cookies, saveAsPath, saveAsFilename, isRename);
     if (storageSaveResult.getResult() == StorageBase::SaveResult::OK)
     {
         if (!isSaveAs && !isRename)
@@ -970,6 +981,16 @@ bool DocumentBroker::saveToStorageInternal(const std::string& sessionId, bool su
         LOG_ERR("Failed to save docKey [" << _docKey << "] to URI [" << uriAnonym << "]. Notifying client.");
         std::ostringstream oss;
         oss << "error: cmd=storage kind=" << (isRename ? "renamefailed" : "savefailed");
+        it->second->sendTextFrame(oss.str());
+    }
+    // Add by Firefly <firefly@ossii.com.tw>
+    // 收到 http code 409 (衝突)
+    // 把錯誤訊息轉給 client
+    else if (storageSaveResult.getResult() == StorageBase::SaveResult::CONFLICT)
+    {
+        LOG_ERR("Conflict: docKey [" << _docKey << "] to URI [" << uriAnonym << "]. (Message:\"" << storageSaveResult.getResponseString() << "\")");
+        std::ostringstream oss;
+        oss << "warning: " << storageSaveResult.getResponseString();
         it->second->sendTextFrame(oss.str());
     }
     else if (storageSaveResult.getResult() == StorageBase::SaveResult::DOC_CHANGED

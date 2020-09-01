@@ -53,6 +53,9 @@ make %{?_smp_mflags}
 
 %__install -D -m 444 %{name}.service %{buildroot}%{_unitdir}/%{name}.service
 
+mkdir -p %{buildroot}/var/lib/%{name}/templaterepo
+%__install modules/templaterepo.xml %{buildroot}/var/lib/%{name}/templaterepo/templaterepo.xml
+
 %files
 %{_bindir}/*
 /usr/share/fonts/SourceHan/*.ttc
@@ -80,6 +83,13 @@ make %{?_smp_mflags}
 
 %doc README
 
+# templaterepo
+%{_libdir}/libtemplaterepo.so
+%{_libdir}/libtemplaterepo.la
+%{_libdir}/libtemplaterepo.so.?
+%{_libdir}/libtemplaterepo.so.?.?.?
+/var/lib/%{name}/templaterepo/templaterepo.xml
+
 %pre
 getent group lool >/dev/null || groupadd -r lool
 getent passwd lool >/dev/null || useradd -g lool -r lool
@@ -103,6 +113,8 @@ rm -rf ${loolparent}/%{name}
 mkdir -p ${loolparent}/%{name}/child-roots
 chown lool:lool ${loolparent}/%{name}
 chown lool:lool ${loolparent}/%{name}/child-roots
+mkdir -p /var/lib/%{name}/templaterepo/templates
+chown -R lool:lool /var/lib/%{name}/templaterepo
 
 fc-cache ${loroot}/share/fonts/truetype
 su lool -c "ndcodfweb-systemplate-setup ${loolparent}/%{name}/systemplate ${loroot} "%{_datadir}/%{name}/extensions" >/dev/null 2>&1"
@@ -136,6 +148,6 @@ if [ $arg = 0 ] ; then
     loolparent=`cd ${loroot} && cd .. && /bin/pwd`
     rm -rf ${loolparent}/%{name}
 fi
- 
+
 
 %changelog

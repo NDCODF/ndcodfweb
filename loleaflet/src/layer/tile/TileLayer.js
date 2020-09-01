@@ -103,7 +103,9 @@ L.TileLayer = L.GridLayer.extend({
 		// Are we zooming currently ? - if so, no cursor.
 		this._isZooming = false;
 		// Cursor is visible or hidden (e.g. for graphic selection).
-		this._isCursorVisible = true;
+		// Modify by Firefly <firefly@ossii.com.tw>
+		// 文字文件預設游標是開啟狀態
+		this._isCursorVisible = (this._docType === 'text');
 		// Original rectangle graphic selection in twips
 		this._graphicSelectionTwips = new L.Bounds(new L.Point(0, 0), new L.Point(0, 0));
 		// Rectangle graphic selection
@@ -249,6 +251,9 @@ L.TileLayer = L.GridLayer.extend({
 			},
 			events: {
 				show: function (options) {
+					// 顯示右鍵選單前
+					$.SmartMenus.hideAll(); // 強制隱藏 Menubar 選單
+					L.hideAllToolbarPopup(); // 強制隱藏所有 Toolbar 選單
 					options.$trigger.get(0).annotation._contextMenu = true;
 				},
 				hide: function (options) {
@@ -377,7 +382,17 @@ L.TileLayer = L.GridLayer.extend({
 			this._exportFormats = [];
 		}
 
-		this._exportFormats.push({label: label, format: format});
+		var duplicate = false;
+		for (var i = 0; i < this._exportFormats.length; i++) {
+			if (this._exportFormats[i].label == label && this._exportFormats[i].format == format) {
+				duplicate = true;
+				break;
+			}
+		}
+
+		if (duplicate === false) {
+			this._exportFormats.push({label: label, format: format});
+		}
 	},
 
 	setUrl: function (url, noRedraw) {
@@ -431,6 +446,11 @@ L.TileLayer = L.GridLayer.extend({
 		}
 		else if (textMsg.startsWith('error:')) {
 			this._onErrorMsg(textMsg);
+		}
+		// Add by Firefly <firefly@ossii.com.tw>
+		// 顯示警示訊息
+		else if (textMsg.startsWith('warning:')) {
+			this._onWarningMsg(textMsg);
 		}
 		else if (textMsg.startsWith('getchildid:')) {
 			this._onGetChildIdMsg(textMsg);
@@ -599,8 +619,11 @@ L.TileLayer = L.GridLayer.extend({
 			}
 		}
 		else if (textMsg.startsWith('macroresult:')) {
-			var result = textMsg.substring('macroresult:'.length + 1);
-			this._map.fire('macroresult', {'result': result});
+			var macroData = textMsg.substring('macroresult:'.length + 1);
+			var idx = macroData.indexOf(':');
+			var macroName = L.Util.trim(macroData.substr(0, idx));
+			var macroResult = L.Util.trim(macroData.substring(idx + 1));
+			this._map._macroResult(macroName, macroResult);
 		}
 		// Add by Firefly <firefly@ossii.com.tw>
 		// 目前文件中 focus 的物件型態
@@ -763,6 +786,14 @@ L.TileLayer = L.GridLayer.extend({
 		}
 
 		this._map.fire('error', {cmd: command.errorCmd, kind: command.errorKind, id: errorId, code: errorCode});
+	},
+
+	// Add by Firefly <firefly@ossii.com.tw>
+	// 顯示警示訊息
+	_onWarningMsg: function (textMsg) {
+		textMsg = textMsg.substring('warning:'.length + 1);
+		this._map.hideBusy();
+		this._map.fire('warn', {msg: textMsg});
 	},
 
 	_onGetChildIdMsg: function (textMsg) {
@@ -934,6 +965,16 @@ L.TileLayer = L.GridLayer.extend({
 							this._twipsToLatLng(topLeftTwips, this._map.getZoom()),
 							this._twipsToLatLng(bottomRightTwips, this._map.getZoom()));
 			this._cellCursorXY = new L.Point(parseInt(strTwips[4]), parseInt(strTwips[5]));
+
+			var offsetCur = new L.Point(parseInt(strTwips[0]), parseInt(strTwips[3]));
+			// Add by Firefly <firefly@ossii.com.tw>
+			// 把文字游標(blink cursor)移至儲存格開頭
+			var bottomRightTwipsCur = topLeftTwips.add(offsetCur);
+			this._visibleCursor = new L.LatLngBounds(
+						this._twipsToLatLng(topLeftTwips, this._map.getZoom()),
+						this._twipsToLatLng(bottomRightTwipsCur, this._map.getZoom()));
+			this._updateCursorPos();
+			//--------------------------------------------------------
 		}
 
 		var horizontalDirection = 0;

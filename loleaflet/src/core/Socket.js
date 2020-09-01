@@ -113,7 +113,9 @@ L.Socket = L.Class.extend({
 		if (parseInt(this._map.options.docParams.access_token_ttl) - Date.now() <= 0) {
 			expirymsg = errorMessages.sessionexpired;
 		}
-		var timerepr = $.timeago(parseInt(this._map.options.docParams.access_token_ttl)).replace(' ago', '');
+		var dateTime = new Date(parseInt(this._map.options.docParams.access_token_ttl));
+		var dateOptions = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+		var timerepr = dateTime.toLocaleDateString(String.locale, dateOptions);
 		this._map.fire('warn', {msg: expirymsg.replace('%time', timerepr)});
 
 		// If user still doesn't refresh the session, warn again periodically
@@ -276,8 +278,14 @@ L.Socket = L.Class.extend({
 		}
 		else if (textMsg.startsWith('lokitversion ')) {
 			var lokitVersionObj = JSON.parse(textMsg.substring(textMsg.indexOf('{')));
-			$('#lokit-version').text(lokitVersionObj.ProductName + '(' +
-			                         lokitVersionObj.ProductVersion + lokitVersionObj.ProductExtension + ')');
+			if (lokitVersionObj.ProductName === 'OxOffice') {
+				$('#lokit-version').text(lokitVersionObj.ProductName + ' ' +
+				lokitVersionObj.ProductVersion + '(' +
+				lokitVersionObj.ProductExtension + ')');
+			} else {
+				$('#lokit-version').text(lokitVersionObj.ProductName + '(' +
+				lokitVersionObj.ProductVersion + lokitVersionObj.ProductExtension + ')');
+			}
 		}
 		else if (textMsg.startsWith('perm:')) {
 			var perm = textMsg.substring('perm:'.length);
@@ -299,7 +307,7 @@ L.Socket = L.Class.extend({
 			return;
 		}
 		else if (textMsg.startsWith('lastmodtime: ')) {
-			var time = textMsg.substring(textMsg.indexOf(' '));
+			var time = textMsg.substring(textMsg.indexOf(' ') + 1);
 			this._map.updateModificationIndicator(time);
 			return;
 		}

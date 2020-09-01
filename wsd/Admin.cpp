@@ -40,6 +40,10 @@
 #include <common/SigUtil.hpp>
 #include <common/Authorization.hpp>
 
+//Modules
+#include <dlfcn.h>
+#include "modules/templaterepo.h"
+
 using namespace LOOLProtocol;
 
 using Poco::Net::HTTPResponse;
@@ -47,7 +51,7 @@ using Poco::StringTokenizer;
 using Poco::Util::Application;
 
 const int Admin::MinStatsIntervalMs = 50;
-const int Admin::DefStatsIntervalMs = 2500;
+const int Admin::DefStatsIntervalMs = 1000;
 // Add by Firefly <firefly@ossii.com.tw>
 using Poco::Path;
 
@@ -126,7 +130,7 @@ bool AdminSocketHandler::upgradeSoftware(const std::string& command)
 
         fp = popen(cmd.c_str(), "r");
         while (fgets(buf, sizeof(buf), fp))
-        {  
+        {
             out.append(buf);
         }
         pclose(fp);
@@ -144,7 +148,7 @@ bool AdminSocketHandler::upgradeSoftware(const std::string& command)
         cmd = "sudo rpm -Uvh --force --test `find -name \"*.rpm\"` 2>&1 ; echo $? > retcode";
         fp = popen(cmd.c_str(), "r");
         while (fgets(buf, sizeof(buf), fp))
-        {  
+        {
             out.append(buf);
         }
         pclose(fp);
@@ -162,7 +166,7 @@ bool AdminSocketHandler::upgradeSoftware(const std::string& command)
         cmd = "sudo rpm -Uvh --force `find -name \"*.rpm\"` 2>&1 ; echo $? > retcode";
         fp = popen(cmd.c_str(), "r");
         while (fgets(buf, sizeof(buf), fp))
-        {  
+        {
             out.append(buf);
         }
         pclose(fp);
@@ -325,7 +329,11 @@ void AdminSocketHandler::handleMessage(bool /* fin */, WSOpCode /* code */,
         }
         catch (std::invalid_argument& exc)
         {
-            LOG_WRN("Invalid PID to kill: " << tokens[1]);
+            LOG_WRN("Invalid PID to kill (invalid argument): " << tokens[1]);
+        }
+        catch (std::out_of_range& exc)
+        {
+            LOG_WRN("Invalid PID to kill (out of range): " << tokens[1]);
         }
     }
     else if (tokens[0] == "settings")
@@ -530,7 +538,7 @@ void AdminSocketHandler::handleMessage(bool /* fin */, WSOpCode /* code */,
                 oss << "\n\t]\n";
                 continue;
             }
-            
+
             if (config.has(key))
             {
                 std::string p_value = addSlashes(config.getString(key, "")); // 讀取 value, 沒有的話預設為空字串
@@ -615,7 +623,7 @@ void AdminSocketHandler::handleMessage(bool /* fin */, WSOpCode /* code */,
                     oss << "}";
                 }
                 oss << "\n\t]\n";
-                continue;   
+                continue;
             }
 
             if (permConfig.has(key))
@@ -666,7 +674,7 @@ void AdminSocketHandler::handleMessage(bool /* fin */, WSOpCode /* code */,
                             {
                                 writeStr = basicStr + "[@" + spit->first + "]";
                             }
-                            
+
                             permConfig.setString(writeStr, spit->second.toString());
                         }
                     }
@@ -710,7 +718,7 @@ void AdminSocketHandler::handleMessage(bool /* fin */, WSOpCode /* code */,
             sendTextFrame("FileNotFound");
         }
 
-        
+
     }
     //  Client 準備上傳軟體升級包
     else if (tokens[0] == "uploadUpgradeFile" && tokens.count() > 1)
@@ -770,6 +778,34 @@ void AdminSocketHandler::handleMessage(bool /* fin */, WSOpCode /* code */,
     {
         // 通知正式升級狀態
         sendTextFrame(upgradeSoftware(tokens[0]) ? "clearUpgradeFilesOK" : "clearUpgradeFilesFail");
+    }
+    // For Module admin
+    else if (tokens[0] == "module" && tokens[1] == "templaterepo")
+    {
+        std::string moduleName = tokens[1];
+        void* templaterepo_h;
+        TemplateRepo* _templaterepo;
+        _templaterepo = 0;
+#if ENABLE_DEBUG
+        templaterepo_h = dlopen("./libtemplaterepo.so", RTLD_NOW);
+#else
+        templaterepo_h = dlopen("libtemplaterepo.so", RTLD_LAZY);
+#endif
+        if (templaterepo_h)
+        {
+            std::cout << "[admin] Load libtemplaterepo.so success" << std::endl;
+            TemplateRepo* (*create)();
+            create = (TemplateRepo* (*)())dlsym(templaterepo_h, "create_object");
+            _templaterepo = (TemplateRepo*)create();
+
+            std::string result = _templaterepo->handleAdmin(firstLine);
+            sendTextFrame(result);
+        }
+        else
+        {
+            std::cout << "[admin] Load libtemplaterepo.so fail" << std::endl;
+            sendTextFrame("No such module");
+        }
     }
     else
     {
@@ -875,7 +911,7 @@ Admin::Admin() :
     _lastRecvCount(0),
     _cpuStatsTaskIntervalMs(DefStatsIntervalMs),
     _memStatsTaskIntervalMs(DefStatsIntervalMs * 2),
-    _netStatsTaskIntervalMs(DefStatsIntervalMs * 2)
+    _netStatsTaskIntervalMs(DefStatsIntervalMs)
 {
     LOG_INF("Admin ctor.");
 

@@ -20,13 +20,18 @@
 	}
 }*/
 
+#toolbar-viewer.w2ui-toolbar {
+    background-color: #d0d0d0 !important;
+}
+
+#toolbar-viewer.w2ui-toolbar,
 #toolbar-up.w2ui-toolbar {
     left: 0;
     right: 0;
     height: 41px;
     padding-left: 9px;
+    padding-right: 9px;
     text-align: center;
-    /*z-index: 999;*/
     overflow: visible !important;
 }
 
@@ -38,8 +43,11 @@
     position: fixed;
     bottom: 0;
     height: 37px;
-    /*z-index: 1000;*/
     border-top: 1px solid #bbbbbb;
+}
+
+#toolbar-down.readonly {
+    display: none;
 }
 
 #document-signing-bar {
@@ -143,11 +151,23 @@
 #document-name-input.editable:hover {
     border: 1px solid #bbbbbb;
     background-color: transparent;
-    background-image: url('images/lc_editdoc.svg');
+    background-image: url('images/cmd/editdoc.svg');
     background-position: right;
     background-repeat: no-repeat;
     padding-right: 20px;
     width: 181px;
+}
+
+#tb_editbar_item_fold table.w2ui-button {
+	border-radius: 20px;
+	background-color: #f4f4f4 !important;
+	padding: 0px 4px;
+	box-shadow: inset 0px 0px 1px 2px #00000020;
+}
+
+#tb_editbar_item_fold table.w2ui-button.over {
+	background-color: #fff !important;
+	box-shadow: inset 0px 0px 1px 2px #0000;
 }
 
 #tb_editbar_item_edit {
@@ -161,6 +181,7 @@
     top: 0;
     width: 28px;
     height: 28px;
+    display: none;
 }
 
 #closebutton {
@@ -175,7 +196,7 @@
     border-color: #ccc;
     background-color: #eee;
 }
-.closebuttonimage{ background: url('images/lc_closedoc.svg') no-repeat center !important; }
+.closebuttonimage{ background: url('images/cmd/quit.svg') no-repeat center !important; }
 
 #tb_actionbar_item_left {
     width: 45%;
@@ -186,6 +207,10 @@
 
 .w2ui-button{
     margin:0 !important;
+}
+
+.w2ui-tb-caption {
+    font-size: 16px !important;
 }
 
 .w2ui-tb-image {
@@ -270,13 +295,11 @@ button.leaflet-control-search-next
 /* select box */
 .select2-results__option {
     padding: 5px;
-    font-family: Arial, "Liberation Sans", "Microsoft JhengHei", "Heiti TC", "Noto Sans TC", "Source Han Sans TC", sans-serif;
     font-size: 14px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .select2-selection__rendered {
-    font-family: Arial, "Liberation Sans", "Microsoft JhengHei", "Heiti TC", "Noto Sans TC", "Source Han Sans TC", sans-serif;
     font-size: 14px;
 }
 .styles-select {

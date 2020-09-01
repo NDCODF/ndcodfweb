@@ -18,9 +18,6 @@ L.Control.Tabs = L.Control.extend({
 		if (!this._initialized) {
 			this._initialize();
 		}
-		setTimeout(function() {
-			$('.spreadsheet-tab').contextMenu(e.perm === 'edit');
-		}, 100);
 
 		if (window.mode.isMobile() == true) {
 			if (e.perm === 'edit') {
@@ -52,27 +49,46 @@ L.Control.Tabs = L.Control.extend({
 			},
 			this);
 
+		map.on('updateparts', this._updateDisabled, this);
+
+		if (this._map._permission !== 'edit')
+			return;
+
 		L.installContextMenu({
 			selector: '.spreadsheet-tab',
 			className: 'loleaflet-font',
+			autoHide: true,
 			callback: (function(key) {
-				if (key === 'insertsheetbefore') {
+				if (key === 'InsertColumnsAfter') {
 					map.insertPage(this._tabForContextMenu);
 				}
-				if (key === 'insertsheetafter') {
+				if (key === 'InsertColumnsBefore') {
 					map.insertPage(this._tabForContextMenu + 1);
 				}
 			}).bind(this),
 			items: {
-				'insertsheetbefore': {name: _('Insert sheet before this')},
-				'insertsheetafter': {name: _('Insert sheet after this')},
-				'movesheets': {
+				'InsertColumnsAfter': {
+					name: _('Insert sheet before this'),
+					icon: (function(opt, $itemElement, itemKey, item) {
+						return this._map.contextMenuIcon($itemElement, itemKey, item);
+					}).bind(this)
+				},
+				'InsertColumnsBefore': {
+					name: _('Insert sheet after this'),
+					icon: (function(opt, $itemElement, itemKey, item) {
+						return this._map.contextMenuIcon($itemElement, itemKey, item);
+					}).bind(this)
+				},
+				'DuplicatePage': {
 					name: _UNO('.uno:Move', 'spreadsheet', true),
 					callback: (function() {
 						that._movePart();
+					}).bind(this),
+					icon: (function(opt, $itemElement, itemKey, item) {
+						return this._map.contextMenuIcon($itemElement, itemKey, item);
 					}).bind(this)
 				},
-				'deletesheet': {name: _UNO('.uno:Remove', 'spreadsheet', true),
+				'DeleteTable': {name: _UNO('.uno:Remove', 'spreadsheet', true),
 						callback: (function(key, options) {
 							var nPos = this._tabForContextMenu;
 							vex.dialog.confirm({
@@ -83,9 +99,12 @@ L.Control.Tabs = L.Control.extend({
 									}
 								}
 							});
+						}).bind(this),
+						icon: (function(opt, $itemElement, itemKey, item) {
+							return this._map.contextMenuIcon($itemElement, itemKey, item);
 						}).bind(this)
 				 },
-				'renamesheet': {name: _UNO('.uno:RenameTable', 'spreadsheet', true),
+				'DBTableRename': {name: _UNO('.uno:RenameTable', 'spreadsheet', true),
 							callback: (function(key, options) {
 								var nPos = this._tabForContextMenu;
 								vex.dialog.open({
@@ -103,25 +122,33 @@ L.Control.Tabs = L.Control.extend({
 										}
 									}
 								});
+							}).bind(this),
+							icon: (function(opt, $itemElement, itemKey, item) {
+								return this._map.contextMenuIcon($itemElement, itemKey, item);
 							}).bind(this)
 				} ,
-				'showsheets': {
+				'sep01': '----',
+				'Show': {
 					name: _UNO('.uno:Show', 'spreadsheet', true),
 					callback: (function() {
 						that._showPage();
+					}).bind(this),
+					icon: (function(opt, $itemElement, itemKey, item) {
+						return this._map.contextMenuIcon($itemElement, itemKey, item);
 					}).bind(this)
 				},
-				'hiddensheets': {
+				'Hide': {
 					name: _UNO('.uno:Hide', 'spreadsheet', true),
 					callback: (function() {
 						map.hidePage();
+					}).bind(this),
+					icon: (function(opt, $itemElement, itemKey, item) {
+						return this._map.contextMenuIcon($itemElement, itemKey, item);
 					}).bind(this)
 				}
 			},
 			zIndex: 1000
 		});
-
-		map.on('updateparts', this._updateDisabled, this);
 	},
 
 	_showPage: function () {

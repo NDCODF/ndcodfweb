@@ -144,6 +144,10 @@ using Poco::Net::PartHandler;
 #endif
 #endif
 
+//Modules
+#include <dlfcn.h>
+#include "modules/templaterepo.h"
+
 using namespace LOOLProtocol;
 
 using Poco::DirectoryIterator;
@@ -1768,7 +1772,9 @@ static std::shared_ptr<ClientSession> createNewClientSession(const WebSocketHand
         // In case of WOPI, if this session is not set as readonly, it might be set so
         // later after making a call to WOPI host which tells us the permission on files
         // (UserCanWrite param).
-        return std::make_shared<ClientSession>(id, docBroker, uriPublic, isReadOnly);
+        auto session = std::make_shared<ClientSession>(id, docBroker, uriPublic, isReadOnly);
+        session->construct();
+        return session;
     }
     catch (const std::exception& exc)
     {
@@ -2150,6 +2156,41 @@ private:
             {
                 handleRobotsTxtRequest(request);
             }
+            else if (reqPathSegs[1] == "templaterepo")
+            {
+                void* templaterepo_h;
+                TemplateRepo* _templaterepo;
+                _templaterepo = 0;
+#if ENABLE_DEBUG
+                templaterepo_h = dlopen("./libtemplaterepo.so", RTLD_NOW);
+                std::cout << "local\n" ;
+#else
+                templaterepo_h = dlopen("libtemplaterepo.so", RTLD_LAZY);
+#endif
+
+                if (templaterepo_h)
+                {
+                    TemplateRepo* (*create)();
+                    create = (TemplateRepo* (*)())dlsym(templaterepo_h, "create_object");
+                    _templaterepo = (TemplateRepo*)create();
+
+                    _templaterepo->handleRequest(_socket, message, request, disposition);
+                    _module_exit_application = _templaterepo->exit_application;
+                }
+                else
+                {
+                    std::cout << "[ModuleLib] Load libtemplaterepo.so fail" << std::endl;
+                    // Bad request.
+                    std::ostringstream oss;
+                    oss << "HTTP/1.1 400\r\n"
+                        << "Date: " << Poco::DateTimeFormatter::format(Poco::Timestamp(), Poco::DateTimeFormat::HTTP_FORMAT) << "\r\n"
+                        << "User-Agent: LOOLWSD WOPI Agent\r\n"
+                        << "Content-Length: 0\r\n"
+                        << "\r\n";
+                    socket->send(oss.str());
+                    socket->shutdown();
+                }
+            }
             else
             {
                 StringTokenizer reqPathTokens(request.getURI(), "/?", StringTokenizer::TOK_IGNORE_EMPTY | StringTokenizer::TOK_TRIM);
@@ -2217,6 +2258,18 @@ private:
 
     void performWrites() override
     {
+    }
+
+    //For modules leave
+    void onDisconnect() override
+    {
+        if (_module_exit_application)
+        {
+            std::cout << "close fork process" << std::endl;
+            auto socket = _socket.lock();
+            socket->closeConnection();
+            _exit(Application::EXIT_SOFTWARE);
+        }
     }
 
 #ifndef MOBILEAPP
@@ -2890,6 +2943,9 @@ private:
 
     /// Cache for static files, to avoid reading and processing from disk.
     static std::map<std::string, std::string> StaticFileContentCache;
+
+    /// This is for module application exit the fork process
+    bool _module_exit_application = false;
 };
 
 std::map<std::string, std::string> ClientRequestDispatcher::StaticFileContentCache;
@@ -3438,6 +3494,10 @@ void LOOLWSD::cleanup()
     }
 #endif
 #endif
+
+    // Delete these while the static Admin instance is still alive.
+    std::lock_guard<std::mutex> docBrokersLock(DocBrokersMutex);
+    DocBrokers.clear();
 }
 
 int LOOLWSD::main(const std::vector<std::string>& /*args*/)

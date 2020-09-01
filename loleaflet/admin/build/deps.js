@@ -37,6 +37,12 @@ var deps = {
 		src: ['src/AdminSocketHistory.js'],
 		desc: 'Socket to query document history.',
 		deps: ['AdminCore']
+	},
+
+	AdminSocketMacIp: {
+		src: ['src/AdminSocketMacIp.js'],
+		desc: 'Socket to templaterepo admin page.',
+		deps: ['AdminCore']
 	}
 };
 

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8"/>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+		<meta name="description" content=""/>
+		<meta name="author" content=""/>
+
+		<title>LibreOffice Online - Admin console</title>
+
+		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+		<!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+			<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+		<![endif]-->
+		<link rel="localizations" href="%SERVICE_ROOT%/loleaflet/%VERSION%/l10n/admin-localizations.json" type="application/vnd.oftn.l10n+json"/>
+	</head>
+	<body>
+		<script src="%SERVICE_ROOT%/loleaflet/%VERSION%/admin-bundle.js"></script>
+		<!--%BRANDING_JS%-->
+		<script>if (typeof brandProductName !== 'undefined') {l10nstrings.strProductName = brandProductName}</script>
+		<script>document.title = l10nstrings.strProductName + ' - ' + l10nstrings.strAdminConsole</script>
+
+		<nav class="navbar navbar-inverse navbar-fixed-top">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+						<span class="sr-only"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="#"><script>document.write(l10nstrings.strProductName + ' - ' + l10nstrings.strAdminConsole)</script><br><small id="version"></small><small id="lokit"></small></a>
+				</div>
+				<div id="navbar" class="navbar-collapse collapse">
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href="adminSettings.html"><script>document.write(l10nstrings.strSettings)</script></a></li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-sm-3 col-md-2 sidebar">
+					<ul class="nav nav-sidebar">
+						<li><a href="admin.html"><script>document.write(l10nstrings.strOverview);</script> <span class="sr-only"><script>document.write(l10nstrings.strCurrent)</script></span></a></li>
+						<li><a href="adminAnalytics.html"><script>document.write(l10nstrings.strAnalytics)</script></a></li>
+						<li><a href="adminHistory.html"><script>document.write(l10nstrings.strHistory)</script></a></li>
+						<li class="active"><a href="adminTemplateRepo.html"><script>document.write("範本中心")</script></a></li>
+					</ul>
+				</div>
+				<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+						<div class="container-fluid">
+
+<script>
+    if (window.location.protocol == "https:") {
+        host = 'wss://' + window.location.host + '%SERVICE_ROOT%/lool/adminws/'
+    }
+    else {
+        host = 'ws://' + window.location.host + '%SERVICE_ROOT%/lool/adminws/'
+    }
+
+    var SocketMacIp = Admin.MacIp(host);
+	Admin.GlobalFunction(host);
+</script>
+<style>
+.material-switch > input[type="checkbox"] {
+    display: none;
+}
+
+.material-switch > label {
+    cursor: pointer;
+    height: 0px;
+    position: relative;
+    width: 32px;
+}
+
+.material-switch > label::before {
+    background: rgb(0, 0, 0);
+    box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    content: '';
+    height: 12px;
+    margin-top: -8px;
+    position:absolute;
+    opacity: 0.3;
+    transition: all 0.1s ease-in-out;
+    width: 32px;
+}
+.material-switch > label::after {
+    background: rgb(255, 255, 255);
+    border-radius: 16px;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+    content: '';
+    height: 16px;
+    left: -4px;
+    margin-top: -6px;
+    position: absolute;
+    top: -4px;
+    transition: all 0.1s ease-in-out;
+    width: 16px;
+}
+.material-switch > input[type="checkbox"]:checked + label::before {
+    background: inherit;
+    opacity: 0.5;
+}
+.material-switch > input[type="checkbox"]:checked + label::after {
+    background: inherit;
+    left: 20px;
+}
+</style>
+<style>
+tfoot input {
+    width: 100%;
+    padding: 3px;
+    box-sizing: border-box;
+}
+hr {
+    border-top: 3px double #8c8b8b;
+}
+</style>
+<ul class="nav nav-tabs">
+    <li role="presentation" class=""><a data-toggle="tab" href="#a1" class="tabctl">API 資訊</a></li>
+    <li role="presentation" class=""><a data-toggle="tab" href="#a2" class="tabctl">Mac address 管理</a></li>
+    <li role="presentation" class=""><a data-toggle="tab" href="#a3" class="tabctl">IP address 管理</a></li>
+    <li role="presentation" class=""><a data-toggle="tab" href="#a4" class="tabctl">版權聲明</a></li>
+</ul>
+<div class="tab-content" style="height: 100%;">
+    <!--******************************API 資訊******************************-->
+    <div id="a1" class="tab-pane" style="width: 50%;">
+        <div class="fluid-container">
+            <div class="panel-group">
+                <div class="panel panel-primary">
+                    <div class="panel-heading"><strong>API</strong></div>
+                    <div class="panel-body">
+                        <p>此 API 需搭配範本中心插件來使用</p>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-group">
+                <div class="panel panel-primary">
+                    <div class="panel-heading"><strong>API 使用方法</strong></div>
+                    <div class="panel-body">
+                        <ol>
+                            <li>透 ODFAPI 管理網站上傳過範本中心</li>
+                            <li>在 Client 端安裝範本中心插件</li>
+                            <li>同步管理中心的範本</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-group">
+                <div class="panel panel-primary">
+                    <div class="panel-heading"><strong>示意圖</strong></div>
+                    <div class="panel-body">
+                        <img class="img-responsive" src="/loleaflet/c1e4a94/images/templaterepo.png"></img>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--******************************Mac addr******************************-->
+    <div id="a2" class="tab-pane" style="width: 60%;">
+        <span>目前筆數： <span class="recordProgress"></span></span>
+        <hr>
+        <form id="macForm" role="form" ctype="mac">
+            <div class="form-group">
+                <label>Mac address:</label>
+                <input type="text" class="form-control" name="macip" placeholder="">
+            </div>
+            <div class="form-group">
+                <label>描述:</label>
+                <input type="text" class="form-control" name="desc" placeholder="">
+            </div>
+            <button type="submit" class="btn btn-default">新增</button>
+            <hr />
+        </form>
+    </div>
+    <!--******************************Ip addr******************************-->
+    <div id="a3" class="tab-pane" style="width: 60%;">
+        <span>目前筆數： <span class="recordProgress"></span></span>
+        <hr>
+        <form id="ipForm" role="form" ctype="ip">
+            <div class="form-group">
+                <label>IP address:</label>
+                <input type="text" class="form-control" name="macip" placeholder="">
+            </div>
+            <div class="form-group">
+                <label>描述:</label>
+                <input type="text" class="form-control" name="desc" placeholder="">
+            </div>
+            <button type="submit" class="btn btn-default">新增</button>
+            <hr />
+        </form>
+    </div>
+    <!--******************************版權聲明******************************-->
+    <div id="a4" class="tab-pane" style="width: 100%; padding-top:10px;">
+        <pre id="license" class="panel-body" style="border: 0; background-color: transparent;">
+        </pre>
+    </div>
+</div>
+
+<!-- template for mac/ip address list -->
+<div class="maciptempl" style="display: none;">
+    <form class="form-inline moddelmacForm" role="form">
+        <div class="form-group">
+            <label class="macipno"></label>
+            <input type="text" class="form-control" name="macip" placeholder="">
+        </div>
+        <div class="form-group">
+            <label>描述</label>
+            <input type="text" class="form-control" name="desc" placeholder="">
+        </div>
+        <input type="hidden" name="rec_id" value="" />
+        <input type="hidden" name="type" value="" />
+        <button name="mod_macip" type="submit" class="btn btn-default">修改</button>
+        <button name="del_macip" type="submit" class="btn btn-default">刪除</button>
+    </form>
+</div>
+<script>
+    $(document).ready(function(){
+        $.ajax(
+            {
+                url:"MPL2.0.html"
+            }).done(function(res)
+                {
+                    $("#license").html(res);
+                });
+    });
+
+    /*
+     * 產生 mac/ip address 列表
+     */
+    function makeMacIpColumns(formId, data, type)
+    {
+        var idx = 1;
+        var list = data['list'];
+        var maxinum = data['max'];
+
+        // 超過筆數不能新增
+        if (list.length >= maxinum) {
+            $(formId).find('button[type=submit]').prop('disabled', true);
+        }
+        // 目前筆數/總筆數
+        progress = list.length + '/' + maxinum;
+        $(formId).parent().find('.recordProgress').text(progress);
+        for (var col in list)
+        {
+            var line = $('.maciptempl').children().clone()
+                .removeClass('maciptempl');
+            // fill data
+            line.find('.macipno').html(idx);
+            line.find('input[name=macip]').val(list[col].macip);
+            line.find('input[name=rec_id]').val(list[col].rec_id);
+            line.find('input[name=desc]').val(list[col].desc);
+            // ctype: mac|ip
+            line.find('button[name=mod_macip]').attr('ctype', type);
+            line.find('button[name=del_macip]').attr('ctype', type);
+            line.show();
+            $(formId).parent().append(line);
+
+            idx ++;
+        }
+    }
+    /* 記憶選取的 tab　位置: 重開網頁以此為依據 */
+    $('.nav-tabs a').click(function() {
+        document.cookie = 'deftab='+this.hash;
+    });
+</script>
+						</div>
+				</div>
+			</div>
+
+			<div id="rowContextMenu" class="dropdown clearfix">
+				<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu" style="display:block;position:static;margin-bottom:5px;">
+					<li><a tabindex="-1" href="#"><script>document.write(l10nstrings.strKill)</script></a></li>
+				</ul>
+			</div>
+			<!--%FOOTER%-->
+	</body>
+</html>
