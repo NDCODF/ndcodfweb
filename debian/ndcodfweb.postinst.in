@@ -34,9 +34,12 @@ case "$1" in
 
 	rm -f /etc/systemd/system/@PACKAGE_NAME@.service || true
 	ln -fs /lib/systemd/system/@PACKAGE_NAME@.service /etc/systemd/system || true
+	touch /var/log/templaterepo.log && chown lool:lool /var/log/templaterepo.log
+    chown -R lool:lool /var/lib/ndcodfweb
 
 	su lool --shell=/bin/sh -c "ndcodfweb-systemplate-setup /opt/@PACKAGE_NAME@/systemplate @LO_PATH@ /usr/share/@PACKAGE_NAME@/extensions >/dev/null 2>&1"
 	;;
+
 
 esac
 
