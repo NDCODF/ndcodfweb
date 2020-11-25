@@ -631,18 +631,11 @@ L.TileLayer = L.GridLayer.extend({
 			var prevContext = this._docContext; // 最近的 context
 			var context = textMsg.substring('context:'.length + 1).trim().split(' ');
 			this._docContext = context[1]; // 目前的 context
-			console.debug(this._docContext);
 
 			// context 已變更
 			var contextChanged = (prevContext !== this._docContext);
 			if (contextChanged) {
 				console.debug('Context has changed.(' + prevContext + ' -> ' + this._docContext);
-			}
-
-			// 已有選取的物件，且 context 已變更，
-			// 需更新物件選取狀態
-			if (this._graphicMarker && contextChanged) {
-				this._onUpdateGraphicSelection();
 			}
 		}
 		//-- End of add.
@@ -723,7 +716,7 @@ L.TileLayer = L.GridLayer.extend({
 			wopiSrc = '?WOPISrc=' + this._map.options.wopiSrc;
 		}
 		var url = this._map.options.webserver + this._map.options.serviceRoot + '/' + this._map.options.urlPrefix + '/' +
-		    encodeURIComponent(this._map.options.doc) + '/' + command.jail + '/' + command.dir + '/' + command.name + wopiSrc;
+			encodeURIComponent(this._map.options.doc) + '/download/' + command.downloadid + wopiSrc;
 
 		this._map.hideBusy();
 		if (this._map['wopi'].DownloadAsPostMessage) {
@@ -823,6 +816,12 @@ L.TileLayer = L.GridLayer.extend({
 	_onShapeSelectionContent: function (textMsg) {
 		textMsg = textMsg.substring('shapeselectioncontent:'.length + 1);
 		if (this._graphicMarker) {
+			var extraInfo = this._graphicSelection.extraInfo;
+			// 存入 cache
+			if (extraInfo.id) {
+				console.debug('save SVG : ', extraInfo.id);
+				this._map._cacheSVG[extraInfo.id] = textMsg;
+			}
 			this._graphicMarker.removeEmbeddedSVG();
 			this._graphicMarker.addEmbeddedSVG(textMsg);
 		}
@@ -901,7 +900,20 @@ L.TileLayer = L.GridLayer.extend({
 			// shapeselectioncontent messages that we get back causes the WebKit process
 			// to crash on iOS.
 			if (!window.ThisIsTheiOSApp && this._graphicSelection.extraInfo.isDraggable && !this._graphicSelection.extraInfo.svg) {
-				this._map._socket.sendMessage('rendershapeselection mimetype=image/svg+xml');
+				//  有 extraInfo.id 的話，就看看這個圖片是否有 cache
+				if (extraInfo.id) {
+					// 沒有被 cache 就要求 OxOffice render SVG 圖片
+					if (this._map._cacheSVG[extraInfo.id] === undefined)
+					{
+						console.debug('request SVG');
+						this._map._socket.sendMessage('rendershapeselection mimetype=image/svg+xml');
+					} else {
+						console.debug('SVG cached(id:' + extraInfo.id + ')');
+					}
+
+				} else {
+					console.debug('Don\'t render SVG image');
+				}
 			}
 		}
 
@@ -2545,9 +2557,11 @@ L.TileLayer = L.GridLayer.extend({
 			}
 
 			var extraInfo = this._graphicSelection.extraInfo;
+			console.debug('create SVG group for id :', extraInfo.id);
 			this._graphicMarker = L.svgGroup(this._graphicSelection, {
 				draggable: extraInfo.isDraggable,
 				dragConstraint: extraInfo.dragInfo,
+				svg: this._map._cacheSVG[extraInfo.id],
 				transform: true,
 				stroke: false,
 				fillOpacity: 0,

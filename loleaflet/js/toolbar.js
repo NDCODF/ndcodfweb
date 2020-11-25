@@ -192,8 +192,8 @@ function onClick(e, id, item, subItem) {
 	}
 	else if (id === 'insertsheet') {
 		var nPos = $('#spreadsheet-tab-scroll')[0].childElementCount;
-		map.insertPage(nPos + 1);
-		$('#spreadsheet-tab-scroll').scrollLeft($('#spreadsheet-tab-scroll').prop('scrollWidth'));
+		map.insertPage(nPos);
+		map.insertPage.scrollToEnd = true;
 	}
 	else if (id === 'firstrecord') {
 		$('#spreadsheet-tab-scroll').scrollLeft(0);
@@ -206,7 +206,8 @@ function onClick(e, id, item, subItem) {
 		$('#spreadsheet-tab-scroll').scrollLeft($('#spreadsheet-tab-scroll').scrollLeft() - 30);
 	}
 	else if (id === 'lastrecord') {
-		$('#spreadsheet-tab-scroll').scrollLeft($('#spreadsheet-tab-scroll').scrollLeft() + 120);
+		console.debug('haha scroll : ', $('#spreadsheet-tab-scroll').scrollLeft());
+		$('#spreadsheet-tab-scroll').scrollLeft(10000000);
 	}
 	else if (id === 'insertgraphic' || item.id === 'localgraphic') {
 		map.executeAllowedCommand('insertgraphic');
@@ -886,14 +887,14 @@ function createToolbar() {
 		{type: 'break', id: 'breakmergecells', hidden: true},
 		{type: 'menu', id: 'textalign', img: 'alignblock', hint: _UNO('.uno:TextAlign'), hidden: true,
 			items: [
-				{id: 'alignleft', text: _UNO('.uno:AlignLeft', 'spreadsheet', true), icon: 'alignleft', uno: 'AlignLeft'},
-				{id: 'alignhorizontalcenter', text: _UNO('.uno:AlignHorizontalCenter', 'spreadsheet'), icon: 'alignhorizontal', uno: 'AlignHorizontalCenter'},
-				{id: 'alignright', text: _UNO('.uno:AlignRight', 'spreadsheet'), icon: 'alignright', uno: 'AlignRight'},
-				{id: 'alignblock', text: _UNO('.uno:AlignBlock', 'spreadsheet'), icon: 'alignblock', uno: 'AlignBlock'},
+				{id: 'alignleft', text: _UNO('.uno:AlignLeft', 'spreadsheet', true), icon: 'alignleft', uno:'LeftPara', unosheet:'AlignLeft'},
+				{id: 'alignhorizontalcenter', text: _UNO('.uno:AlignHorizontalCenter', 'spreadsheet', true), icon: 'alignhorizontal', uno:'CenterPara', unosheet:'AlignHorizontalCenter'},
+				{id: 'alignright', text: _UNO('.uno:AlignRight', 'spreadsheet', true), icon: 'alignright', uno:'RightPara', unosheet:'AlignRight'},
+				{id: 'alignblock', text: _UNO('.uno:AlignBlock', 'spreadsheet', true), icon: 'alignblock', uno:'JustifyPara', unosheet:'AlignBlock'},
 				{type: 'break'},
-				{id: 'aligntop', text: _UNO('.uno:CommonAlignTop'), icon: 'aligntop', uno: 'CommonAlignTop'},
-				{id: 'alignmiddle', text: _UNO('.uno:CommonAlignVerticalCenter'), icon: 'alignmiddle', uno: 'CommonAlignVerticalCenter'},
-				{id: 'alignbottom', text: _UNO('.uno:CommonAlignBottom'), icon: 'alignbottom', uno: 'CommonAlignBottom'},
+				{id: 'aligntop', text: _UNO('.uno:CellVertTop'), icon: 'aligntop', uno:'CellVertTop', unosheet:'CommonAlignTop'},
+				{id: 'alignmiddle', text: _UNO('.uno:CellVertCenter'), icon: 'alignmiddle', uno:'CellVertCenter', unosheet:'CommonAlignVerticalCenter'},
+				{id: 'alignbottom', text: _UNO('.uno:CellVertBottom'), icon: 'alignbottom', uno:'CellVertBottom', unosheet:'CommonAlignBottom'},
 			]},
 		{type: 'menu',  id: 'linespacing',  img: 'linespacing', hint: _UNO('.uno:FormatSpacingMenu'), hidden: true,
 			items: [
@@ -901,17 +902,17 @@ function createToolbar() {
 				{id: 'spacepara15', text: _UNO('.uno:SpacePara15'), uno: 'SpacePara15'},
 				{id: 'spacepara2', text: _UNO('.uno:SpacePara2'), uno: 'SpacePara2'},
 				{type: 'break'},
-				{id: 'paraspaceincrease', text: _UNO('.uno:ParaspaceIncrease'), uno: 'ParaspaceIncrease'},
-				{id: 'paraspacedecrease', text: _UNO('.uno:ParaspaceDecrease'), uno: 'ParaspaceDecrease'}
+				{id: 'paraspaceincrease', text: _UNO('.uno:ParaspaceIncrease', 'global', true), uno: 'ParaspaceIncrease'},
+				{id: 'paraspacedecrease', text: _UNO('.uno:ParaspaceDecrease', 'global', true), uno: 'ParaspaceDecrease'}
 			]},
 		{type: 'button',  id: 'wraptext',  img: 'wraptext', hint: _UNO('.uno:WrapText', 'spreadsheet'), hidden: true, uno: 'WrapText', disabled: true},
 		{type: 'break', id: 'breakspacing', hidden: true},
 		{type: 'button',  id: 'defaultnumbering',  img: 'numbering', hint: _UNO('.uno:DefaultNumbering'), hidden: true, uno: 'DefaultNumbering', disabled: true},
 		{type: 'button',  id: 'defaultbullet',  img: 'bullet', hint: _UNO('.uno:DefaultBullet'), hidden: true, uno: 'DefaultBullet', disabled: true},
 		{type: 'break', id: 'breakbullet', hidden: true},
-		{type: 'button',  id: 'incrementindent',  img: 'incrementindent', hint: _UNO('.uno:IncrementIndent'), uno: 'IncrementIndent', hidden: true, disabled: true},
-		{type: 'button',  id: 'decrementindent',  img: 'decrementindent', hint: _UNO('.uno:DecrementIndent'), uno: 'DecrementIndent', hidden: true, disabled: true},
-		{type: 'break', id: 'breakindent', hidden: true},
+		{type: 'button',  id: 'incrementindent',  img: 'incrementindent', hint: _UNO('.uno:IncrementIndent', 'global', true), uno: 'IncrementIndent', disabled: true},
+		{type: 'button',  id: 'decrementindent',  img: 'decrementindent', hint: _UNO('.uno:DecrementIndent', 'global', true), uno: 'DecrementIndent', disabled: true},
+		{type: 'break', id: 'breakindent', hidden: false},
 		{type: 'button',  id: 'sortascending',  img: 'sortascending', hint: _UNO('.uno:SortAscending', 'spreadsheet'), uno: 'SortAscending', disabled: true, hidden: true},
 		{type: 'button',  id: 'sortdescending',  img: 'sortdescending', hint: _UNO('.uno:SortDescending', 'spreadsheet'), uno: 'SortDescending', disabled: true, hidden: true},
 		{type: 'break', id: 'breaksorting', hidden: true},
@@ -927,6 +928,7 @@ function createToolbar() {
 		},
 		{type: 'button',  id: 'numberformatcurrency',  img: 'numberformatcurrency', hint: _UNO('.uno:NumberFormatCurrency', 'spreadsheet'), hidden: true, uno: 'NumberFormatCurrency', disabled: true},
 		{type: 'button',  id: 'numberformatpercent',  img: 'numberformatpercent', hint: _UNO('.uno:NumberFormatPercent', 'spreadsheet'), hidden: true, uno: 'NumberFormatPercent', disabled: true},
+		{type: 'button',  id: 'numberformatdecimal',  img: 'numberformatdecimal', hint: _UNO('.uno:NumberFormatDecimal', 'spreadsheet'), uno: 'NumberFormatDecimal', hidden: true, disabled: true},
 		{type: 'button',  id: 'numberformatdate',  img: 'numberformatdate', hint: _UNO('.uno:NumberFormatDate', 'spreadsheet'), uno: 'NumberFormatDate', hidden: true, disabled: true},
 		{type: 'button',  id: 'numberformatdecdecimals',  img: 'numberformatdecdecimals', hint: _UNO('.uno:NumberFormatDecDecimals', 'spreadsheet'), hidden: true, uno: 'NumberFormatDecDecimals', disabled: true},
 		{type: 'button',  id: 'numberformatincdecimals',  img: 'numberformatincdecimals', hint: _UNO('.uno:NumberFormatIncDecimals', 'spreadsheet'), hidden: true, uno: 'NumberFormatIncDecimals', disabled: true},
@@ -1046,7 +1048,7 @@ function initMobileToolbar(toolItems) {
 		},
 		onRefresh: function() {
 			$('#addressInput').off('keyup', onAddressInput).on('keyup', onAddressInput);
-			$('#formulaInput').off('keyup', onFormulaInput).on('keyup', onFormulaInput);
+			$('#formulaInput').off('keyup compositionstart compositionupdate compositionend textInput', onFormulaInput).on('keyup compositionstart compositionupdate compositionend textInput', onFormulaInput);
 			$('#formulaInput').off('blur', onFormulaBarBlur).on('blur', onFormulaBarBlur);
 			$('#formulaInput').off('focus', onFormulaBarFocus).on('focus', onFormulaBarFocus);
 		}
@@ -1297,7 +1299,7 @@ function initNormalToolbar(toolItems) {
 		},
 		onRefresh: function() {
 			$('#addressInput').off('keyup', onAddressInput).on('keyup', onAddressInput);
-			$('#formulaInput').off('keyup', onFormulaInput).on('keyup', onFormulaInput);
+			$('#formulaInput').off('keyup compositionstart compositionupdate compositionend textInput', onFormulaInput).on('keyup keyupcompositionstart compositionupdate compositionend textInput', onFormulaInput)
 			$('#formulaInput').off('blur', onFormulaBarBlur).on('blur', onFormulaBarBlur);
 			$('#formulaInput').off('focus', onFormulaBarFocus).on('focus', onFormulaBarFocus);
 		}
@@ -1676,7 +1678,19 @@ function onAddressInput(e) {
 	}
 }
 
+var _isComposing = false;
 function onFormulaInput(e) {
+
+	switch (e.type) {
+	case 'compositionstart':
+	case 'compositionupdate':
+		_isComposing = true;
+		break;
+	case 'compositionend':
+		_isComposing = false;
+		break;
+	}
+
 	// keycode = 13 is 'enter'
 	if (e.keyCode === 13) {
 		// formula bar should not have focus anymore
@@ -1690,7 +1704,7 @@ function onFormulaInput(e) {
 	} else if (e.keyCode === 27) { // 27 = esc key
 		map.sendUnoCommand('.uno:Cancel');
 		map.focus();
-	} else {
+	} else if (!_isComposing) {
 		map.cellEnterString(L.DomUtil.get('formulaInput').value);
 	}
 }
@@ -1767,13 +1781,16 @@ function onDocLayerInit() {
 	switch (docType) {
 	case 'spreadsheet':
 		toolbarUp.show('textalign', 'wraptext', 'breakspacing', 'insertannotation', 'conditionalformaticonset',
-			'numberformatcurrency', 'numberformatpercent', 'numberformatdate',
+			'numberformatcurrency', 'numberformatpercent', 'numberformatdecimal', 'numberformatdate',
 			'numberformatincdecimals', 'numberformatdecdecimals', 'break-number', 'togglemergecells', 'breakmergecells',
 			'setborderstyle', 'sortascending', 'sortdescending', 'breaksorting');
 		toolbarUp.remove('styles');
 
 		statusbar.set('zoom', {
 			items: [
+				{ id: 'zoom60', text: '60%', scale: 7},
+				{ id: 'zoom70', text: '70%', scale: 8},
+				{ id: 'zoom85', text: '85%', scale: 9},
 				{ id: 'zoom100', text: '100%', scale: 10},
 				{ id: 'zoom120', text: '120%', scale: 11},
 				{ id: 'zoom150', text: '150%', scale: 12},
@@ -1836,8 +1853,8 @@ function onDocLayerInit() {
 		break;
 	case 'text':
 		toolbarUp.show('leftpara', 'centerpara', 'rightpara', 'justifypara', 'breakpara', 'linespacing',
-			'breakspacing', 'defaultbullet', 'defaultnumbering', 'breakbullet', 'incrementindent', 'decrementindent',
-			'breakindent', 'inserttable', 'insertannotation');
+			'breakspacing', 'defaultbullet', 'defaultnumbering', 'breakbullet',
+			'inserttable', 'insertannotation');
 
 		if (!_inMobileMode()) {
 			statusbar.insert('left', [
@@ -1895,7 +1912,7 @@ function onDocLayerInit() {
 		}
 		// FALLTHROUGH intended
 	case 'drawing':
-		toolbarUp.show('leftpara', 'centerpara', 'rightpara', 'justifypara', 'breakpara', 'linespacing',
+		toolbarUp.show('textalign', 'linespacing',
 			'breakspacing', 'defaultbullet', 'defaultnumbering', 'breakbullet', 'inserttable');
 		statusbar.show('prev', 'next', 'prevnextbreak');
 		// Remove irrelevant toolbars
@@ -2805,10 +2822,11 @@ function onAddView(e) {
 }
 
 function onRemoveView(e) {
+	var username = escapeHtml(e.username);
 	$('#tb_actionbar_item_userlist')
 		.w2overlay({
 			class: 'loleaflet-font',
-			html: userLeftPopupMessage.replace('%user', e.username),
+			html: userLeftPopupMessage.replace('%user', username),
 			style: 'padding: 5px'
 		});
 	clearTimeout(userPopupTimeout);

@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.63])
 
-AC_INIT([ndcodfweb], [1.1.9], [develop@ossii.com.tw])
+AC_INIT([ndcodfweb], [1.1.12], [develop@ossii.com.tw])
 LT_INIT([shared, disable-static, dlopen])
 
 AM_INIT_AUTOMAKE([1.10 subdir-objects tar-pax -Wno-portability])
@@ -17,7 +17,7 @@ LOOLWSD_VERSION_MAJOR=`echo $VERSION | awk -F. '{print $1}'`
 LOOLWSD_VERSION_MINOR=`echo $VERSION | awk -F. '{print $2}'`
 LOOLWSD_VERSION_MICRO=`echo $VERSION | awk -F. '{print $3}'`
 LOOLWSD_VERSION="$LOOLWSD_VERSION_MAJOR.$LOOLWSD_VERSION_MINOR.$LOOLWSD_VERSION_MICRO"
-LOOLWSD_VERSION_DIST=2
+LOOLWSD_VERSION_DIST=3
 
 AC_SUBST([LOOLWSD_VERSION_MAJOR])
 AC_SUBST([LOOLWSD_VERSION_MINOR])
@@ -40,6 +40,10 @@ AC_SUBST([LOOLWSD_VERSION_HASH])
 
 AC_DEFINE_UNQUOTED([LOOLWSD_VERSION_HASH],[["$LOOLWSD_VERSION_HASH"]],[LibreOffice Online git hash if present])
 
+LOOLWSD_BRANCH=`( cat dist_git_branch 2> /dev/null || git rev-parse --abbrev-ref HEAD 2> /dev/null )`
+AC_SUBST([LOOLWSD_BRANCH])
+AC_DEFINE_UNQUOTED([LOOLWSD_BRANCH], [["$LOOLWSD_BRANCH"]],[git branch name])
+
 AC_CONFIG_SRCDIR([wsd/LOOLWSD.cpp])
 
 AC_CONFIG_HEADERS([config.h])
@@ -54,6 +58,14 @@ AS_IF([test `uname -s` = Linux],
       [AC_PATH_PROG([SETCAP], setcap,[],[/bin:/usr/bin:/sbin:/usr/sbin])]
        AS_IF([test -z "$SETCAP"],
        [AC_MSG_ERROR([The setcap command is needed. It might be in a package called libcap-progs.])]))
+
+#-----------------------------------------------------------------------
+# Check for fontconfig support
+#-----------------------------------------------------------------------
+PKG_CHECK_MODULES(FONTCONFIG, fontconfig >= 2.12.6, use_fontconfig="yes", use_fontconfig="no")
+if test "$use_fontconfig" = "no" ; then
+    AC_MSG_ERROR([Need fontconfig, but not found or version too old.])
+fi
 
 # Declare options
 AC_ARG_ENABLE([debug],
@@ -668,6 +680,7 @@ AC_CONFIG_FILES([Makefile
                  loleaflet/Makefile
                  extensions/Makefile
                  fonts/Makefile
+                 fonts/00-ndcodfweb.conf
                  modules/Makefile
                  loleaflet/npm-shrinkwrap.json
                  ndcodfweb.spec

@@ -120,10 +120,13 @@ L.Control.Preview = L.Control.extend({
 		});
 
 		var viewerbar = w2ui['viewerbar'];
-		// 試算表的縮放比例不能低於 100%
+		// 試算表的縮放比例不能低於 60%
 		if (docType === 'spreadsheet') {
 			viewerbar.set('zoom', {
 				items: [
+					{ id: 'zoom60', text: '60%', scale: 7},
+					{ id: 'zoom70', text: '70%', scale: 8},
+					{ id: 'zoom85', text: '85%', scale: 9},
 					{ id: 'zoom100', text: '100%', scale: 10},
 					{ id: 'zoom120', text: '120%', scale: 11},
 					{ id: 'zoom150', text: '150%', scale: 12},
@@ -166,7 +169,8 @@ L.Control.Preview = L.Control.extend({
 
 		// 設定另存檔案型態列表
 		viewerbar.set('downloadas', this._getSaveAsList(docType));
-		if (map._permission === 'view') {
+		// view 模式且未被禁止輸出，才能顯示下載為XXX以及列印按鈕
+		if (map._permission === 'view' && !map['wopi'].HideExportOption) {
 			viewerbar.show('downloadas', 'print', 'outputbreak');
 		}
 

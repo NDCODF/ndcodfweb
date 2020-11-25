@@ -2156,7 +2156,7 @@ private:
             {
                 handleRobotsTxtRequest(request);
             }
-            else if (reqPathSegs[1] == "templaterepo")
+            else if (reqPathSegs[1] == "templaterepo" && false)
             {
                 void* templaterepo_h;
                 TemplateRepo* _templaterepo;
@@ -2348,18 +2348,15 @@ private:
 
     void handleVersionRequest(const Poco::Net::HTTPRequest& request)
     {
-        std::string branding_name, branding_version;
-
         LOG_DBG("Get version request: " << request.getURI());
-        std::string version = "{\"OxOOL\":\""  LOOLWSD_VERSION  "\"";
-        if ((std::string)BRAND_NAME != "")
-        {
-            version += ",\"" BRAND_NAME "\":\"" BRAND_VERSION "\"";
-        }
-        else
-        {
-            version += ",\"OSSII\":\"" LOOLWSD_VERSION "\"";
-        }
+        std::string loVersion, hash, branch;
+        Util::getVersionInfo(loVersion, hash, branch);
+        std::string versionStr =
+            "{ \"Version\": \"" + loVersion + "\", " +
+            "\"Hash\": \"" + hash + "\", " +
+            "\"Branch\": \"" + branch + "\" }";
+        std::string version = "{\"loolserver\":" +  versionStr;
+        version += ",\"lokitversion\":" + LOOLWSD::LOKitVersion;
         version += "}";
 
         std::ostringstream oss;
@@ -2611,7 +2608,7 @@ private:
                 }
             }
         }
-        else if (tokens.count() >= 6)
+        else if (tokens.count() > 3 && tokens[3] == "download")
         {
             LOG_INF("File download request.");
             // TODO: Check that the user in question has access to this file!
@@ -2627,30 +2624,23 @@ private:
                 throw BadRequestException("DocKey [" + docKey + "] is invalid.");
             }
 
-            // 2. Cross-check if received child id is correct
-            if (docBrokerIt->second->getJailId() != tokens[3])
-            {
-                throw BadRequestException("ChildId does not correspond to docKey");
-            }
+            std::string downloadId = tokens[4];
+            std::string url = docBrokerIt->second->getDownloadURL(downloadId);
+            docBrokerIt->second->unregisterDownloadId(downloadId);
+            std::string jailId = docBrokerIt->second->getJailId();
 
-            // 3. Don't let user download the file in main doc directory containing
-            // the document being edited otherwise we will end up deleting main directory
-            // after download finishes
-            if (docBrokerIt->second->getJailId() == tokens[4])
-            {
-                throw BadRequestException("RandomDir cannot be equal to ChildId");
-            }
             docBrokersLock.unlock();
 
-            std::string fileName;
-            URI::decode(tokens[5], fileName);
-            const Path filePath(LOOLWSD::ChildRoot + tokens[3]
-                                + JAILED_DOCUMENT_ROOT + tokens[4] + "/" + fileName);
+            bool foundDownloadId = !url.empty();
+
+            std::string decoded;
+            Poco::URI::decode(url, decoded);
+            const Path filePath(LOOLWSD::ChildRoot + jailId + JAILED_DOCUMENT_ROOT + decoded);
             const std::string filePathAnonym = LOOLWSD::anonymizeUrl(filePath.toString());
-            LOG_INF("HTTP request for: " << filePathAnonym);
-            bool responded = false;
-            if (filePath.isAbsolute() && File(filePath).exists())
+            if (foundDownloadId && filePath.isAbsolute() && File(filePath).exists())
             {
+                LOG_INF("HTTP request for: " << filePathAnonym);
+                std::string fileName = filePath.getFileName();
                 const Poco::URI postRequestUri(request.getURI());
                 const Poco::URI::QueryParameters postRequestQueryParams = postRequestUri.getQueryParameters();
 
@@ -2682,7 +2672,6 @@ private:
                 try
                 {
                     HttpHelper::sendFile(socket, filePath.toString(), contentType, response);
-                    responded = true;
                 }
                 catch (const Exception& exc)
                 {
@@ -2694,9 +2683,19 @@ private:
             }
             else
             {
-                LOG_ERR("Download file [" << filePathAnonym << "] not found.");
+                if (foundDownloadId)
+                    LOG_ERR("Download file [" << filePathAnonym << "] not found.");
+                else
+                    LOG_ERR("Download with id [" << downloadId << "] not found.");
+
+                std::ostringstream oss;
+                oss << "HTTP/1.1 404 Not Found\r\n"
+                    << "User-Agent: " << HTTP_AGENT_STRING << "\r\n"
+                    << "Content-Length: 0\r\n"
+                    << "\r\n";
+                socket->send(oss.str());
+                socket->shutdown();
             }
-            (void)responded;
             return;
         }
 

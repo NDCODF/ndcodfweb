@@ -286,6 +286,7 @@ void FileServerRequestHandler::handleRequest(const HTTPRequest& request, Poco::M
         requestUri.getPathSegments(requestSegments);
         std::string relPath = getRequestPathname(request);
         // Is this a file we read at startup - if not; its not for serving.
+        Poco::Net::HTMLForm form(request);
         if (requestSegments.size() < 1 || FileHash.find(relPath) == FileHash.end())
         {
             // Modify by Firefly <firefly@ossii.com.tw>
@@ -299,9 +300,7 @@ void FileServerRequestHandler::handleRequest(const HTTPRequest& request, Poco::M
                 relPath = "/loleaflet/dist/images/empty.png";
             }
             else
-            {
                 throw Poco::FileNotFoundException("Invalid URI request: [" + requestUri.toString() + "].");
-            }
         }
 
         const auto& config = Application::instance().config();
@@ -816,22 +815,82 @@ void FileServerRequestHandler::preprocessFile(const HTTPRequest& request, Poco::
     LOG_DBG("Sent file: " << relPath << ": " << preprocess);
 }
 
+// HTML模板引擎試做
+std::string mergeHTML(std::string baseFile, std::string extendFile)
+{
+    std::string baseFile_copy = baseFile;
+    Poco::RegularExpression block_rule("{%[ ]*BLOCK[ ]+[a-zA-Z0-9]+[ ]*%}");
+    Poco::RegularExpression end_block_rule("{%[ ]*END[ ]+BLOCK[ ]*%}");
+    Poco::RegularExpression space_rule("\\s{2,}");
+    Poco::RegularExpression::Match match;
+    std::vector<std::string> allResult;
+    // 解析基礎模板的區塊
+    while(true)
+    {
+        if (!block_rule.match(baseFile, 0, match))
+            break;
+        std::string result = baseFile.substr(match.offset, match.length);
+        allResult.push_back(result);
+        baseFile = baseFile.substr(match.offset + match.length);
+    }
+    std::map<std::string, std::string> contentResult;
+    Poco::RegularExpression::Match start_match;
+    Poco::RegularExpression::Match end_match;
+
+    //解析擴充模板的內容
+    while(true)
+    {
+        if (!block_rule.match(extendFile, 0, start_match))
+            break;
+        if (!end_block_rule.match(extendFile, 0, end_match))
+            break;
+        std::string result = extendFile.substr(start_match.offset + start_match.length, end_match.offset - start_match.length - start_match.offset);
+        std::string keyValue = extendFile.substr(start_match.offset, start_match.length);
+        space_rule.subst(keyValue, " ", Poco::RegularExpression::RE_GLOBAL);
+        contentResult[keyValue] = result;
+        extendFile = extendFile.substr(end_match.offset + end_match.length);
+    }
+
+    // 將擴充模板的內容取代基礎模板的對應區塊
+    for(auto const &target:allResult)
+    {
+        std::string normalize_target = target;
+        space_rule.subst(normalize_target, " ", Poco::RegularExpression::RE_GLOBAL);
+        auto ele = contentResult.find(normalize_target);
+        std::string target_content = "";
+        if(ele != contentResult.end())
+        {
+            target_content = contentResult[normalize_target];
+        }
+        Poco::replaceInPlace(baseFile_copy, target, target_content);
+    }
+    return baseFile_copy;
+}
+
 void FileServerRequestHandler::preprocessAdminFile(const HTTPRequest& request,const std::shared_ptr<StreamSocket>& socket)
 {
     Poco::Net::HTTPResponse response;
-
     if (!LOOLWSD::AdminEnabled)
         throw Poco::FileAccessDeniedException("Admin console disabled");
 
     if (!FileServerRequestHandler::isAdminLoggedIn(request, response))
         throw Poco::Net::NotAuthenticatedException("Invalid admin login");
 
+    Poco::Net::HTMLForm form(request);
+    Poco::URI requestUri(request.getURI());
+    std::vector<std::string> requestSegments;
+    requestUri.getPathSegments(requestSegments);
+    std::string admin_content = "";
+
     static const std::string scriptJS("<script src=\"%s/loleaflet/" LOOLWSD_VERSION_HASH "/%s.js\"></script>");
     static const std::string footerPage("<div class=\"footer navbar-fixed-bottom text-info text-center\"><strong>Key:</strong> %s &nbsp;&nbsp;<strong>Expiry Date:</strong> %s</div>");
 
     const std::string relPath = getRequestPathname(request);
+    std::string baseFilePath = "/loleaflet/dist/admin/adminBase.html";
     LOG_DBG("Preprocessing file: " << relPath);
-    std::string adminFile = *getUncompressedFile(relPath);
+    std::string adminFile = *getUncompressedFile(baseFilePath);
+    std::string extendFile;
+    extendFile = *getUncompressedFile(relPath);
     std::string brandJS(Poco::format(scriptJS, LOOLWSD::ServiceRoot, std::string(BRANDING)));
     std::string brandFooter;
 
@@ -846,7 +905,9 @@ void FileServerRequestHandler::preprocessAdminFile(const HTTPRequest& request,co
         brandFooter = Poco::format(footerPage, key.data(), Poco::DateTimeFormatter::format(key.expiry(), Poco::DateTimeFormat::RFC822_FORMAT));
     }
 #endif
-
+    {
+        adminFile = mergeHTML(adminFile,extendFile);
+    }
     Poco::replaceInPlace(adminFile, std::string("<!--%BRANDING_JS%-->"), brandJS);
     Poco::replaceInPlace(adminFile, std::string("<!--%FOOTER%-->"), brandFooter);
     Poco::replaceInPlace(adminFile, std::string("%VERSION%"), std::string(LOOLWSD_VERSION_HASH));

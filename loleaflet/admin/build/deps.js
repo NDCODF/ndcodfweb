@@ -27,12 +27,6 @@ var deps = {
 		deps: ['AdminCore']
 	},
 
-	AdminSocketSettings: {
-		src: ['src/AdminSocketSettings.js'],
-		desc: 'Socket to handle settings from server',
-		deps: ['AdminCore']
-	},
-
  	AdminSocketHistory: {
 		src: ['src/AdminSocketHistory.js'],
 		desc: 'Socket to query document history.',
@@ -43,7 +37,19 @@ var deps = {
 		src: ['src/AdminSocketMacIp.js'],
 		desc: 'Socket to templaterepo admin page.',
 		deps: ['AdminCore']
-	}
+	},
+
+	AdminSocketSoftwareUpgrade: {
+                src: ['src/AdminSocketSoftwareUpgrade.js'],
+                desc: 'Socket to upgrade software.',
+                deps: ['AdminCore']
+        },
+
+	AdminSocketFontManager: {
+                src: ['src/AdminSocketFontManager.js'],
+                desc: 'Socket to font manager.',
+                deps: ['AdminCore']
+        }
 };
 
 if (typeof exports !== 'undefined') {

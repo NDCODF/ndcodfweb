@@ -17,6 +17,7 @@ Summary:        OxOffice Online WebSocket Daemon
 License:        MPL
 Source0:        @PACKAGE_NAME@-%{version}.tar.gz
 BuildRequires:  libcap-devel libpng-devel poco-devel >= 1.7.5
+BuildRequires:  freetype-devel >= 2.8 fontconfig-devel >= 2.12.6
 %if 0%{?fedora} || 0%{?rhel} >= 7
 BuildRequires:  libpcap kernel-headers
 %endif
@@ -53,8 +54,8 @@ make %{?_smp_mflags}
 
 %__install -D -m 444 %{name}.service %{buildroot}%{_unitdir}/%{name}.service
 
-mkdir -p %{buildroot}/var/lib/%{name}/templaterepo
-%__install modules/templaterepo.xml %{buildroot}/var/lib/%{name}/templaterepo/templaterepo.xml
+#mkdir -p %{buildroot}/var/lib/%{name}/templaterepo
+#%__install modules/templaterepo.xml %{buildroot}/var/lib/%{name}/templaterepo/templaterepo.xml
 
 %files
 %{_bindir}/*
@@ -88,14 +89,14 @@ mkdir -p %{buildroot}/var/lib/%{name}/templaterepo
 %{_libdir}/libtemplaterepo.la
 %{_libdir}/libtemplaterepo.so.?
 %{_libdir}/libtemplaterepo.so.?.?.?
-/var/lib/%{name}/templaterepo/templaterepo.xml
+#/var/lib/%{name}/templaterepo/templaterepo.xml
 
 %pre
 getent group lool >/dev/null || groupadd -r lool
 getent passwd lool >/dev/null || useradd -g lool -r lool
 
 %post
-setcap cap_net_bind_service=+ep /usr/bin/ndcodfweb
+setcap cap_dac_override,cap_net_bind_service=+ep /usr/bin/ndcodfweb
 setcap cap_fowner,cap_mknod,cap_sys_chroot=ep /usr/bin/ndcodfwebforkit
 fc-cache -f
 
@@ -103,7 +104,7 @@ mkdir -p /var/cache/%{name} && chown lool:lool /var/cache/%{name}
 rm -rf /var/cache/%{name}/*
 
 touch /var/log/%{name}.log && chown lool:lool /var/log/%{name}.log
-touch /var/log/templaterepo.log && chown lool:lool /var/log/templaterepo.log
+#touch /var/log/templaterepo.log && chown lool:lool /var/log/templaterepo.log
 
 # Figure out where LO is installed, let's hope it is not a mount point
 # Create a directory for oxloolwsd on the same file system
@@ -114,8 +115,8 @@ rm -rf ${loolparent}/%{name}
 mkdir -p ${loolparent}/%{name}/child-roots
 chown lool:lool ${loolparent}/%{name}
 chown lool:lool ${loolparent}/%{name}/child-roots
-mkdir -p /var/lib/%{name}/templaterepo/templates
-chown -R lool:lool /var/lib/%{name}/templaterepo
+#mkdir -p /var/lib/%{name}/templaterepo/templates
+#chown -R lool:lool /var/lib/%{name}/templaterepo
 
 fc-cache ${loroot}/share/fonts/truetype
 su lool -c "ndcodfweb-systemplate-setup ${loolparent}/%{name}/systemplate ${loroot} "%{_datadir}/%{name}/extensions" >/dev/null 2>&1"
@@ -142,7 +143,7 @@ fc-cache -f
 if [ $arg = 0 ] ; then
     # log file
     rm -f /var/log/%{name}.log
-    rm -f /var/log/templaterepo.log
+    #rm -f /var/log/templaterepo.log
     # cache dir
     rm -fr /var/cache/%{name}
     # systemplate & child root

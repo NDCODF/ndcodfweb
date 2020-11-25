@@ -1,6 +1,9 @@
 *.ods
 *.odp
 *.odt
+*.ots
+*.otp
+*.ott
 .libs
-libtemplaterepo.la
-templaterepo.sqlite
+*.la
+*.sqlite

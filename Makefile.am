@@ -69,7 +69,7 @@ oxoolwsdconfig_DATA = ndcodfweb.xml \
 ACLOCAL_AMFLAGS = -I m4
 
 # quick and easy for now.
-include_paths = -I${top_srcdir}/common -I${top_srcdir}/net -I${top_srcdir}/wsd -I${top_srcdir}/kit ${ZLIB_CFLAGS}
+include_paths = -I${top_srcdir}/common -I${top_srcdir}/net -I${top_srcdir}/wsd -I${top_srcdir}/kit ${ZLIB_CFLAGS} ${FONTCONFIG_CFLAGS}
 
 AM_CPPFLAGS = -pthread -DLOOLWSD_DATADIR='"@LOOLWSD_DATADIR@"' \
 	      -DLOOLWSD_CONFIGDIR='"@LOOLWSD_CONFIGDIR@"' \
@@ -80,7 +80,7 @@ if !ENABLE_DEBUG
 AM_CPPFLAGS += -DNDEBUG
 endif
 
-AM_LDFLAGS = -pthread -Wl,-E,-rpath,/snap/ndcodfweb/current/usr/lib -lpam $(ZLIB_LIBS)
+AM_LDFLAGS = -pthread -Wl,-E,-rpath,/snap/ndcodfweb/current/usr/lib -lpam $(ZLIB_LIBS) ${FONTCONFIG_LIBS}
 
 if ENABLE_SSL
 AM_LDFLAGS += -lssl -lcrypto
@@ -407,7 +407,7 @@ clang-tidy:
 
 all-local: ndcodfweb ndcodfwebforkit ndcodfwebmount @TILECACHE_PATH@ @JAILS_PATH@ $(SYSTEM_STAMP)
 if ENABLE_SETCAP
-	    sudo @SETCAP@ cap_net_bind_service=+ep ndcodfweb
+	    sudo @SETCAP@ cap_dac_override,cap_net_bind_service=+ep ndcodfweb
 	    sudo @SETCAP@ cap_fowner,cap_mknod,cap_sys_chroot=ep ndcodfwebforkit
 	    sudo @SETCAP@ cap_sys_admin=ep ndcodfwebmount
 else

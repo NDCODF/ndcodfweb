@@ -68,9 +68,8 @@ public:
 	bool exit_application;
 
 private:
-
-    //For Product
-    bool checkIPnMac(HTMLForm*, std::string);
+    bool checkIP(std::string);
+    bool checkMac(std::string);
 
     // Add for logging database
     std::string reqClientAddress;

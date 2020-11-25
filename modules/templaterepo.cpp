@@ -125,7 +125,12 @@ TemplateRepo::~TemplateRepo()
 void TemplateRepo::setLogPath()
 {
     Poco::AutoPtr<FileChannel> fileChannel(new FileChannel);
-    std::string logFile = xml_config->getString("logging.log_file", "/tmp/templaterepo.log");
+    std::string logFile;
+#if ENABLE_DEBUG
+    logFile = "/tmp/templaterepo.log";
+#else
+    logFile = xml_config->getString("logging.log_file", "/var/log/templaterepo.log");
+#endif
     fileChannel->setProperty("path", logFile);
     fileChannel->setProperty("archive", "timestamp");
     fileChannel->setProperty("rotation", "weekly");
@@ -135,38 +140,39 @@ void TemplateRepo::setLogPath()
     channel = new Poco::FormattingChannel(patternFormatter, fileChannel);
 }
 
-bool TemplateRepo::checkIPnMac(HTMLForm* form, std::string clientAddress)
+bool TemplateRepo::checkIP(std::string clientAddress)
 {
-    std::string macAddr="";
-    if (form->has("mac_addr") && !form->get("mac_addr").empty())
-    {
-        macAddr = form->get("mac_addr");
-    }
-
     TemplateRepoDB *tr_db = new TemplateRepoDB();
     if (!tr_db->validateIP(clientAddress))
     {
-        if(macAddr.empty() || !tr_db->validateMac(macAddr))
-        {
-            return false;
-        }
+		return false;
     }
     return true;
 }
 
+bool TemplateRepo::checkMac(std::string macAddr)
+{
+
+    TemplateRepoDB *tr_db = new TemplateRepoDB();
+	if(macAddr.empty() || !tr_db->validateMac(macAddr))
+	{
+		return false;
+	}
+	return true;
+}
 /*
  * FileServer Implement
  */
 
-void TemplateRepo::uploadFile(std::weak_ptr<StreamSocket> _socket,
-        MemoryInputStream& message,
+void TemplateRepo::uploadFile(std::weak_ptr<StreamSocket> _socket, 
+        MemoryInputStream& message, 
         HTTPRequest& request)
 {
     std::cout << "upload file\n" ;
     ManageFilePartHandler handler(std::string(""));
     HTMLForm form(request, message, handler);
     auto socket = _socket.lock();
-    if(!checkIPnMac(&form, socket->clientAddress()))
+    if(!checkIP(socket->clientAddress()))
     {
         quickHttpRes(_socket, HTTPResponse::HTTP_SERVICE_UNAVAILABLE,"Not Auth");
         return;
@@ -195,13 +201,18 @@ void TemplateRepo::uploadFile(std::weak_ptr<StreamSocket> _socket,
     }
 }
 
-void TemplateRepo::downloadFile(std::weak_ptr<StreamSocket> _socket,
-        MemoryInputStream& message,
+void TemplateRepo::downloadFile(std::weak_ptr<StreamSocket> _socket, 
+        MemoryInputStream& message, 
         HTTPRequest& request)
 {
     HTMLForm form(request, message);
+	std::string macAddr="";
+    if (form.has("mac_addr") && !form.get("mac_addr").empty())
+    {
+        macAddr = form.get("mac_addr");
+    }
     auto socket = _socket.lock();
-    if(!checkIPnMac(&form, socket->clientAddress()))
+    if(!checkMac(macAddr))
     {
         quickHttpRes(_socket, HTTPResponse::HTTP_SERVICE_UNAVAILABLE,"Not Auth");
         return;
@@ -219,7 +230,6 @@ void TemplateRepo::downloadFile(std::weak_ptr<StreamSocket> _socket,
     if (targetFile.exists())
     {
         HTTPResponse response;
-        socket = _socket.lock();
 
         response.set("Access-Control-Allow-Origin", "*");
         response.set("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -235,13 +245,13 @@ void TemplateRepo::downloadFile(std::weak_ptr<StreamSocket> _socket,
         quickHttpRes(_socket, HTTPResponse::HTTP_SERVICE_UNAVAILABLE, "No such file, please confirm");
 }
 
-void TemplateRepo::deleteFile(std::weak_ptr<StreamSocket> _socket,
-        MemoryInputStream& message,
+void TemplateRepo::deleteFile(std::weak_ptr<StreamSocket> _socket, 
+        MemoryInputStream& message, 
         HTTPRequest& request)
 {
     HTMLForm form(request, message);
     auto socket = _socket.lock();
-    if(!checkIPnMac(&form, socket->clientAddress()))
+    if(!checkIP(socket->clientAddress()))
     {
         quickHttpRes(_socket, HTTPResponse::HTTP_SERVICE_UNAVAILABLE,"Not Auth");
         return;
@@ -268,14 +278,14 @@ void TemplateRepo::deleteFile(std::weak_ptr<StreamSocket> _socket,
     }
 }
 
-void TemplateRepo::updateFile(std::weak_ptr<StreamSocket> _socket,
-        MemoryInputStream& message,
+void TemplateRepo::updateFile(std::weak_ptr<StreamSocket> _socket, 
+        MemoryInputStream& message, 
         HTTPRequest& request)
 {
     ManageFilePartHandler handler(std::string(""));
     HTMLForm form(request, message, handler);
     auto socket = _socket.lock();
-    if(!checkIPnMac(&form, socket->clientAddress()))
+    if(!checkIP(socket->clientAddress()))
     {
         quickHttpRes(_socket, HTTPResponse::HTTP_SERVICE_UNAVAILABLE,"Not Auth");
         return;
@@ -310,13 +320,13 @@ void TemplateRepo::updateFile(std::weak_ptr<StreamSocket> _socket,
     }
 }
 
-void TemplateRepo::saveInfo(std::weak_ptr<StreamSocket> _socket,
-        MemoryInputStream& message,
+void TemplateRepo::saveInfo(std::weak_ptr<StreamSocket> _socket, 
+        MemoryInputStream& message, 
         HTTPRequest& request)
 {
     HTMLForm form(request, message);
     auto socket = _socket.lock();
-    if(!checkIPnMac(&form, socket->clientAddress()))
+    if(!checkIP(socket->clientAddress()))
     {
         quickHttpRes(_socket, HTTPResponse::HTTP_SERVICE_UNAVAILABLE,"Not Auth");
         return;
@@ -355,7 +365,7 @@ void TemplateRepo::handleAPIHelp(const Poco::Net::HTTPRequest& request,
 {
     HTMLForm form(request, message);
     auto socket = _socket.lock();
-    if(!checkIPnMac(&form, socket->clientAddress()))
+    if(!checkIP(socket->clientAddress()))
     {
         quickHttpRes(_socket, HTTPResponse::HTTP_SERVICE_UNAVAILABLE,"Not Auth");
         return;
@@ -434,7 +444,7 @@ void TemplateRepo::syncTemplates(std::weak_ptr<StreamSocket> _socket,
     Object::Ptr object;
 
     /*
-     * Swagger's CORS would send OPTIONS first to check if the server allow CROS, So Check First OPTIONS and allow
+     * Swagger's CORS would send OPTIONS first to check if the server allow CROS, So Check First OPTIONS and allow 
      */
     if (request.getMethod() == HTTPRequest::HTTP_OPTIONS)
     {
@@ -451,71 +461,54 @@ void TemplateRepo::syncTemplates(std::weak_ptr<StreamSocket> _socket,
         socket->send(oss.str());
         return;
     }
-    if (request.getContentType() == "application/json")
-    {
-        std::string line, data;
-        std::istream &iss(message);
-        while (!iss.eof())
-        {
-            std::getline(iss, line);
-            data += line;
-        }
-        // 解析 request body to json
-        std::string jstr = data;
-        std::cout << "jstr: " << jstr << std::endl;
-
-        Poco::JSON::Parser jparser;
-        Var result;
-
-        // Parse data to PocoJSON
-        try{
-            result = jparser.parse(jstr);
-            object = result.extract<Object::Ptr>();
-        }
-        catch (Poco::Exception& e)
-        {
-            std::cerr << e.displayText() << std::endl;
-            std::string rrr = "JSON Error\n";
-            std::ostringstream oss;
-            oss << "HTTP/1.1 401 JSON ERROR\r\n"
-                << "Last-Modified: " << Poco::DateTimeFormatter::format(Poco::Timestamp(), Poco::DateTimeFormat::HTTP_FORMAT) << "\r\n"
-                << "Access-Control-Allow-Origin: *" << "\r\n"
-                << "User-Agent: " << WOPI_AGENT_STRING << "\r\n"
-                << "Content-Length: " << rrr.size() << "\r\n"
-                << "Content-Type: application/json; charset=utf-8\r\n"
-                << "X-Content-Type-Options: nosniff\r\n"
-                << "\r\n"
-                << rrr;
-            auto socket = _socket.lock();
-            socket->send(oss.str());
-            return;
-        }
-    }
-    else
-    {
-        std::string rrr = "Content Type Error";
-        std::ostringstream oss;
-        oss << "HTTP/1.1 401 Error\r\n"
-            << "Last-Modified: " << Poco::DateTimeFormatter::format(Poco::Timestamp(), Poco::DateTimeFormat::HTTP_FORMAT) << "\r\n"
-            << "Access-Control-Allow-Origin: *" << "\r\n"
-            << "Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept" << "\r\n"
-            << "User-Agent: " << WOPI_AGENT_STRING << "\r\n"
-            << "Content-Length: " << rrr.size() << "\r\n"
-            << "Content-Type: application/json; charset=utf-8\r\n"
-            << "X-Content-Type-Options: nosniff\r\n"
-            << "\r\n"
-            << rrr;
-        auto socket = _socket.lock();
-        socket->send(oss.str());
-        return;
-    }
     HTMLForm form(request, message);
-    auto socket = _socket.lock();
-    if(!checkIPnMac(&form, socket->clientAddress()))
+	std::string macAddr = "";
+    if (form.has("mac_addr") && !form.get("mac_addr").empty())
+    {
+        macAddr = form.get("mac_addr");
+    }
+    if(!checkMac(macAddr))
     {
         quickHttpRes(_socket, HTTPResponse::HTTP_SERVICE_UNAVAILABLE,"Not Auth");
         return;
     }
+	std::string jstr = "";
+    if (form.has("data") && !form.get("data").empty())
+    {
+        jstr = form.get("data");
+    }
+	else
+	{
+        quickHttpRes(_socket, HTTPResponse::HTTP_SERVICE_UNAVAILABLE,"No data provide");
+        return;
+	}
+	Poco::JSON::Parser jparser;
+	Var result;
+
+	// Parse data to PocoJSON
+	try{
+		result = jparser.parse(jstr);
+		object = result.extract<Object::Ptr>();
+	}
+	catch (Poco::Exception& e)
+	{
+		std::cerr << e.displayText() << std::endl;
+		std::string rrr = "JSON Error\n";
+		std::ostringstream oss;
+		oss << "HTTP/1.1 401 JSON ERROR\r\n"
+			<< "Last-Modified: " << Poco::DateTimeFormatter::format(Poco::Timestamp(), Poco::DateTimeFormat::HTTP_FORMAT) << "\r\n"
+			<< "Access-Control-Allow-Origin: *" << "\r\n"
+			<< "User-Agent: " << WOPI_AGENT_STRING << "\r\n"
+			<< "Content-Length: " << rrr.size() << "\r\n"
+			<< "Content-Type: application/json; charset=utf-8\r\n"
+			<< "X-Content-Type-Options: nosniff\r\n"
+			<< "\r\n"
+			<< rrr;
+		auto socket = _socket.lock();
+		socket->send(oss.str());
+		return;
+	}
+    auto socket = _socket.lock();
 
     std::string zipFilePath = zip_DIFF_FILE(object);
     std::cout << zipFilePath << std::endl;
@@ -664,6 +657,15 @@ void TemplateRepo::handleRequest(std::weak_ptr<StreamSocket> _socket,
             std::cout << e.what() << std::endl;
             logger().notice("[Exception]" + std::string(e.what()));
         }
+        try
+        {
+            auto socket = _socket.lock();
+            socket->shutdown();
+        }
+        catch(const std::exception &e)
+        {
+            std::cout<< "Force shutdown socket in module\n";
+        }
         exit_application = true;
     }
     else
@@ -682,10 +684,15 @@ void TemplateRepo::doTemplateRepo(std::weak_ptr<StreamSocket> _socket,
     auto socket = _socket.lock();
 
 #if ENABLE_DEBUG
-    template_dir = std::string(DEV_DIR) + "/runTimeData/templates/";
+    template_dir = std::string(DEV_DIR) + "/runTimeData/templaterepo/templates/";
 #else
     template_dir = xml_config->getString("template.dir_path", "");
 #endif
+    auto checkTemplateDir = Poco::File(template_dir);
+    if(!checkTemplateDir.exists())
+    {
+        checkTemplateDir.createDirectories();
+    }
     std::cout << "template_dir: " << template_dir << std::endl;
     HTTPResponse response;
 
@@ -766,7 +773,6 @@ std::string TemplateRepo::handleAdmin(std::string command)
     }
     else if(action == "add_mac_data" || action == "add_ip_data")
     {
-        // TODO check the limit amount of mac/ip here
         StringTokenizer data(dataString, ",", tokenOpts);
         result = action + " false";
         if(data[0] != "")
@@ -809,20 +815,6 @@ std::string TemplateRepo::handleAdmin(std::string command)
 
     //std::cout << tokens[2] << " : " << result << std::endl;
     return result;
-}
-
-std::string TemplateRepo::getHTMLFile(std::string fileName)
-{
-    std::string filePath = "";
-#if ENABLE_DEBUG
-    std::string dev_path("");
-    filePath = dev_path + "/html/";
-#else
-    filePath = "/var/lib/oxool/templaterepo/html/";
-#endif
-    filePath += fileName;
-    std::cout << "filePath: " << filePath << std::endl;
-    return filePath;
 }
 
 extern "C" TemplateRepo* create_object()

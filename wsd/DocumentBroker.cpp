@@ -594,6 +594,14 @@ bool DocumentBroker::load(const std::shared_ptr<ClientSession>& session, const s
         // 把 userExtraInfoObj 也放到 wopiInfo
         Poco::JSON::Parser parser;
         wopiInfo->set("UserExtraInfo", parser.parse(userExtraInfo));
+        // Mark the session as 'Document owner' if WOPI hosts supports it
+        if (userId == _storage->getFileInfo().getOwnerId())
+        {
+            LOG_DBG("Session [" << sessionId << "] is the document owner");
+            session->setDocumentOwner(true);
+            // 編輯該檔案者就是擁有者本人
+            wopiInfo->set("DocumentOwner", true);
+        }
 
         std::ostringstream ossWopiInfo;
         wopiInfo->stringify(ossWopiInfo);
@@ -604,13 +612,6 @@ bool DocumentBroker::load(const std::shared_ptr<ClientSession>& session, const s
         // frame. Important to send this message immediately and not enqueue it so that in case
         // document load fails, loleaflet is able to tell its parent frame via PostMessage API.
         session->sendMessage("wopi: " + wopiInfoString);
-
-        // Mark the session as 'Document owner' if WOPI hosts supports it
-        if (userId == _storage->getFileInfo().getOwnerId())
-        {
-            LOG_DBG("Session [" << sessionId << "] is the document owner");
-            session->setDocumentOwner(true);
-        }
 
         getInfoCallDuration = wopifileinfo->getCallDuration();
 
@@ -1362,6 +1363,22 @@ void DocumentBroker::alertAllUsers(const std::string& msg)
     }
 }
 
+std::string DocumentBroker::getDownloadURL(const std::string& downloadId)
+{
+    auto aFound = _registeredDownloadLinks.find(downloadId);
+    if (aFound != _registeredDownloadLinks.end())
+        return aFound->second;
+
+    return "";
+}
+
+void DocumentBroker::unregisterDownloadId(const std::string& downloadId)
+{
+    auto aFound = _registeredDownloadLinks.find(downloadId);
+    if (aFound != _registeredDownloadLinks.end())
+        _registeredDownloadLinks.erase(aFound);
+}
+
 /// Handles input from the prisoner / child kit process
 bool DocumentBroker::handleInput(const std::vector<char>& payload)
 {
@@ -1408,6 +1425,17 @@ bool DocumentBroker::handleInput(const std::vector<char>& payload)
             }
         }
 #endif
+        else if (command == "registerdownload:")
+        {
+            LOG_CHECK_RET(message->tokens().size() == 3, false);
+            std::string downloadid, url;
+            LOOLProtocol::getTokenString((*message)[1], "downloadid", downloadid);
+            LOG_CHECK_RET(downloadid != "", false);
+            LOOLProtocol::getTokenString((*message)[2], "url", url);
+            LOG_CHECK_RET(url != "", false);
+
+            _registeredDownloadLinks[downloadid] = url;
+        }
         else
         {
             LOG_ERR("Unexpected message: [" << msg << "].");
