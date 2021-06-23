@@ -38,7 +38,6 @@ L.Control.Tabs = L.Control.extend({
 		this._spreadsheetTabs = {};
 		this._tabForContextMenu = 0;
 		var map = this._map;
-		var that = this;
 		var docContainer = map.options.documentContainer;
 		this._tabsCont = L.DomUtil.create('div', 'spreadsheet-tabs-container', docContainer.parentElement);
 		L.DomEvent.on(this._tabsCont, 'touchstart',
@@ -50,6 +49,7 @@ L.Control.Tabs = L.Control.extend({
 			this);
 
 		map.on('updateparts', this._updateDisabled, this);
+		map.on('resize', this._selectedTabScrollIntoView, this);
 
 		L.installContextMenu({
 			selector: '.spreadsheet-tab',
@@ -79,56 +79,43 @@ L.Control.Tabs = L.Control.extend({
 				'DuplicatePage': {
 					name: _UNO('.uno:Move', 'spreadsheet', true),
 					callback: (function() {
-						that._movePart();
+						map.fire('executeDialog', {dialog: 'MoveTable'});
 					}).bind(this),
 					icon: (function(opt, $itemElement, itemKey, item) {
 						return this._map.contextMenuIcon($itemElement, itemKey, item);
 					}).bind(this)
 				},
-				'DeleteTable': {name: _UNO('.uno:Remove', 'spreadsheet', true),
-						callback: (function(key, options) {
-							var nPos = this._tabForContextMenu;
-							vex.dialog.confirm({
-								message: _('Are you sure you want to delete sheet, %sheet% ?').replace('%sheet%', options.$trigger.text()),
-								callback: function(data) {
-									if (data) {
-										map.deletePage(nPos);
-									}
-								}
-							});
-						}).bind(this),
-						icon: (function(opt, $itemElement, itemKey, item) {
-							return this._map.contextMenuIcon($itemElement, itemKey, item);
-						}).bind(this)
+				'DeleteTable': {
+					name: _UNO('.uno:Remove', 'spreadsheet', true),
+					callback: (function(/*key, options*/) {
+						map.fire('executeDialog', {dialog: 'RemoveTable'});
+					}).bind(this),
+					disabled: (function() {
+						// 只有一個工作表顯示
+						return (map.getNumberOfVisibleParts() === 1);
+					}).bind(this),
+					icon: (function(opt, $itemElement, itemKey, item) {
+						return this._map.contextMenuIcon($itemElement, itemKey, item);
+					}).bind(this)
 				 },
-				'DBTableRename': {name: _UNO('.uno:RenameTable', 'spreadsheet', true),
-							callback: (function(key, options) {
-								var nPos = this._tabForContextMenu;
-								vex.dialog.open({
-									message: _('Enter new sheet name'),
-									input: '<input name="sheetname" type="text" value="' + options.$trigger.text() + '" required />',
-									callback: function(data) {
-										if (!data)
-											return;
-
-										if (map.isSheetnameValid(data.sheetname, nPos)) {
-											map.renamePage(data.sheetname, nPos);
-										} else {
-											var msg = _('Invalid sheet name.\nThe sheet name must not be empty or a duplicate of \nan existing name and may not contain the characters [ ] * ? : / \\ \nor the character \' (apostrophe) as first or last character.');
-											vex.dialog.alert(msg.replace(/\n/g, '<br>'));
-										}
-									}
-								});
-							}).bind(this),
-							icon: (function(opt, $itemElement, itemKey, item) {
-								return this._map.contextMenuIcon($itemElement, itemKey, item);
-							}).bind(this)
+				'DBTableRename': {
+					name: _UNO('.uno:RenameTable', 'spreadsheet', true),
+					callback: (function(/*key, options*/) {
+						map.fire('executeDialog', {dialog: 'RenameTable'});
+					}).bind(this),
+					icon: (function(opt, $itemElement, itemKey, item) {
+						return this._map.contextMenuIcon($itemElement, itemKey, item);
+					}).bind(this)
 				} ,
 				'sep01': '----',
 				'Show': {
 					name: _UNO('.uno:Show', 'spreadsheet', true),
 					callback: (function() {
-						that._showPage();
+						map.fire('executeDialog', {dialog: 'ShowTable'});
+					}).bind(this),
+					disabled: (function() {
+						// 沒有隱藏的工作表才能執行
+						return !this._map.hasAnyHiddenPart();
 					}).bind(this),
 					icon: (function(opt, $itemElement, itemKey, item) {
 						return this._map.contextMenuIcon($itemElement, itemKey, item);
@@ -138,6 +125,10 @@ L.Control.Tabs = L.Control.extend({
 					name: _UNO('.uno:Hide', 'spreadsheet', true),
 					callback: (function() {
 						map.hidePage();
+					}).bind(this),
+					disabled: (function() {
+						// 只有一個工作表
+						return map.getNumberOfVisibleParts() === 1;
 					}).bind(this),
 					icon: (function(opt, $itemElement, itemKey, item) {
 						return this._map.contextMenuIcon($itemElement, itemKey, item);
@@ -300,13 +291,51 @@ L.Control.Tabs = L.Control.extend({
 					scrollDiv.scrollLeft = horizScrollPos;
 				}
 			}
+
+			// 超出可視範圍的 SelectedTab 置於可視範圍內
+			var SelectedPosition = $('#spreadsheet-tab' + selectedPart).position()
+			if (SelectedPosition) {
+				var visualWidth = $('.spreadsheet-tab-scroll').width(); // 可視範圍 0~width
+				var selectedLeft = SelectedPosition.left;
+				if (selectedLeft > visualWidth) scrollDiv.scrollLeft = visualWidth; // 水平捲動至最右
+				if (selectedLeft < 0) scrollDiv.scrollLeft = 0; // 水平捲動至最左
+			}
+
 		}
+		this._selectedTabScrollIntoView();
 	},
 
 	_setPart: function (e) {
 		var part =  e.target.id.match(/\d+/g)[0];
 		if (part !== null) {
 			this._map.setPart(parseInt(part), /*external:*/ false, /*calledFromSetPartHandler:*/ true);
+		}
+	},
+
+	// 捲動選取的標籤到可視區內
+	_selectedTabScrollIntoView: function() {
+		var container = this._tabsCont;
+		var scrollTab = this._tabsCont.firstChild; // div#spreadsheet-tab-scroll
+
+		// 目前選取的標籤 DOM
+		var tab = scrollTab.children[this._map.getCurrentPartNumber()];
+		if (!tab) return false;
+		// 取得可視區範圍所在範圍
+		var containerRect = container.getBoundingClientRect();
+		// 標籤所在範圍
+		var tabRect = tab.getBoundingClientRect();
+		var scrollOffsetX = 0; // 預設捲動位置
+		// 選取的標籤 左邊被遮住
+		if (tabRect.left < containerRect.left) {
+			scrollOffsetX = tab.offsetLeft
+		// 選取的標籤 右邊被遮住
+		} else if (tabRect.right > containerRect.right) {
+			scrollOffsetX = tab.offsetLeft - containerRect.width + tabRect.width;
+		}
+
+		// 捲動位置不為 0，需捲動到指定位置
+		if (scrollOffsetX !== 0) {
+			$(scrollTab).animate({scrollLeft: scrollOffsetX}, 100);
 		}
 	}
 });

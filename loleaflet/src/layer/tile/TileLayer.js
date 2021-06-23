@@ -92,7 +92,7 @@ L.TileLayer = L.GridLayer.extend({
 		this._docType = options.docType;
 		// Add by Firefly <firefly@ossii.com.tw>
 		// 目前文件中 focus 的物件型態
-		this._docContext = '';
+		this._docContext = this._docType === 'spreadsheet' ? 'Cell' : '';
 		this._documentInfo = '';
 		// Position and size of the visible cursor.
 		this._visibleCursor = new L.LatLngBounds(new L.LatLng(0, 0), new L.LatLng(0, 0));
@@ -323,6 +323,21 @@ L.TileLayer = L.GridLayer.extend({
 			}
 		}, this);
 
+		// Add by Firefly <firefly@ossii.com.tw>
+		// 處理滑鼠雙擊事件
+		map.on('dblclick', function(/*e*/) {
+			if (map._permission === 'edit') {
+				if (!this._isCursorVisible && // 游標未顯示
+					this._docContext === 'Cell' && // 位於儲存格
+					this._isCellFormulaEmpty // 儲存格無資料
+				) {
+					this._onCellCursorMsg('cellcursor: EMPTY'); // 不顯示儲存格選取框
+					this._isCursorVisible = true; // 游標可見
+					this._updateCursorAndOverlay(); // 更新游標
+				}
+			}
+		}, this);
+
 		for (var key in this._selectionHandles) {
 			this._selectionHandles[key].on('drag dragend', this._onSelectionHandleDrag, this);
 		}
@@ -476,6 +491,16 @@ L.TileLayer = L.GridLayer.extend({
 		else if (textMsg.startsWith('invalidatecursor:')) {
 			this._onInvalidateCursorMsg(textMsg);
 		}
+		else if (textMsg.startsWith('msgbox:')) {
+			var msgdata = textMsg.substring('msgbox:'.length + 1);
+			msgdata = JSON.parse(msgdata);
+			var icon = msgdata.type !== 'info' ? msgdata.type : 'information';
+			L.dialog.alert({
+				message: _(msgdata.text),
+				icon: icon
+			});
+
+		}
 		else if (textMsg.startsWith('invalidatetiles:')) {
 			var payload = textMsg.substring('invalidatetiles:'.length + 1);
 			if (!payload.startsWith('EMPTY')) {
@@ -613,9 +638,7 @@ L.TileLayer = L.GridLayer.extend({
 		else if (textMsg.startsWith('removesession')) {
 			var viewId = parseInt(textMsg.substring('removesession'.length + 1));
 			if (this._map._docLayer._viewId === viewId) {
-				this._map.fire('postMessage', {msgId: 'close', args: {EverModified: this._map._everModified, Deprecated: true}});
-				this._map.fire('postMessage', {msgId: 'UI_Close', args: {EverModified: this._map._everModified}});
-				this._map.remove();
+				this._map.closeDocument();
 			}
 		}
 		else if (textMsg.startsWith('macroresult:')) {
@@ -694,6 +717,8 @@ L.TileLayer = L.GridLayer.extend({
 
 	_onCellFormulaMsg: function (textMsg) {
 		var formula = textMsg.substring(13);
+		// 儲存格是否有值
+		this._isCellFormulaEmpty = formula.length === 0 ? true : false;
 		if (!this._map['wopi'].DisableCopy) {
 			this._selectionTextContent = formula;
 		}
@@ -818,7 +843,7 @@ L.TileLayer = L.GridLayer.extend({
 		if (this._graphicMarker) {
 			var extraInfo = this._graphicSelection.extraInfo;
 			// 存入 cache
-			if (extraInfo.id) {
+			if (extraInfo.id !== undefined) {
 				console.debug('save SVG : ', extraInfo.id);
 				this._map._cacheSVG[extraInfo.id] = textMsg;
 			}
@@ -901,22 +926,22 @@ L.TileLayer = L.GridLayer.extend({
 			// to crash on iOS.
 			if (!window.ThisIsTheiOSApp && this._graphicSelection.extraInfo.isDraggable && !this._graphicSelection.extraInfo.svg) {
 				//  有 extraInfo.id 的話，就看看這個圖片是否有 cache
-				if (extraInfo.id) {
+				if (extraInfo.id !== undefined) {
 					// 沒有被 cache 就要求 OxOffice render SVG 圖片
 					if (this._map._cacheSVG[extraInfo.id] === undefined)
 					{
-						console.debug('request SVG');
-						this._map._socket.sendMessage('rendershapeselection mimetype=image/svg+xml');
+						console.debug('Sending request SVG');
+						// 暫時關閉傳回選取圖片 SVG 內容，避免多人共編效率低落的問題
+						//this._map._socket.sendMessage('rendershapeselection mimetype=image/svg+xml');
 					} else {
 						console.debug('SVG cached(id:' + extraInfo.id + ')');
 					}
-
 				} else {
 					console.debug('Don\'t render SVG image');
 				}
 			}
 		}
-
+		this._hideCursorIfVisible(); // 如果輸入游標有出現的話，關閉它
 		this._onUpdateGraphicSelection();
 	},
 
@@ -969,23 +994,33 @@ L.TileLayer = L.GridLayer.extend({
 		}
 		else {
 			var strTwips = textMsg.match(/\d+/g);
-			var topLeftTwips = new L.Point(parseInt(strTwips[0]), parseInt(strTwips[1]));
-			var offset = new L.Point(parseInt(strTwips[2]), parseInt(strTwips[3]));
+			var top = parseInt(strTwips[0]);
+			var left = parseInt(strTwips[1]);
+			var width = parseInt(strTwips[2]);
+			var height = parseInt(strTwips[3]);
+			var topLeftTwips = new L.Point(top, left);
+			var offset = new L.Point(width, height);
 			var bottomRightTwips = topLeftTwips.add(offset);
 			this._cellCursorTwips = new L.Bounds(topLeftTwips, bottomRightTwips);
 			this._cellCursor = new L.LatLngBounds(
-							this._twipsToLatLng(topLeftTwips, this._map.getZoom()),
-							this._twipsToLatLng(bottomRightTwips, this._map.getZoom()));
+				this._twipsToLatLng(topLeftTwips, this._map.getZoom()),
+				this._twipsToLatLng(bottomRightTwips, this._map.getZoom()));
 			this._cellCursorXY = new L.Point(parseInt(strTwips[4]), parseInt(strTwips[5]));
 
-			var offsetCur = new L.Point(parseInt(strTwips[0]), parseInt(strTwips[3]));
 			// Add by Firefly <firefly@ossii.com.tw>
 			// 把文字游標(blink cursor)移至儲存格開頭
+			var vCursorHeight = height < 285 ? height : 285; // 虛擬游標高度
+			var offsetCur = new L.Point(top, vCursorHeight);
 			var bottomRightTwipsCur = topLeftTwips.add(offsetCur);
 			this._visibleCursor = new L.LatLngBounds(
-						this._twipsToLatLng(topLeftTwips, this._map.getZoom()),
-						this._twipsToLatLng(bottomRightTwipsCur, this._map.getZoom()));
-			this._updateCursorPos();
+				this._twipsToLatLng(topLeftTwips, this._map.getZoom()),
+				this._twipsToLatLng(bottomRightTwipsCur, this._map.getZoom())
+			);
+			this._updateCursorPos(); // 定位游標
+			// 移動隱藏的輸入欄位到游標位置
+			this._map._clipboardContainer.setLatLng(this._visibleCursor.getNorthWest());
+			// 如果輸入游標有出現的話，關閉它
+			this._hideCursorIfVisible();
 			//--------------------------------------------------------
 		}
 
@@ -998,6 +1033,11 @@ L.TileLayer = L.GridLayer.extend({
 			horizontalDirection = sign(this._cellCursor.getWest() - this._prevCellCursor.getWest());
 			verticalDirection = sign(this._cellCursor.getNorth() - this._prevCellCursor.getNorth());
 		}
+		else if (!this._isEmptyRectangle(this._cellCursor)) {
+			// This is needed for jumping view to cursor position on tab switch
+			horizontalDirection = sign(this._cellCursor.getWest());
+			verticalDirection = sign(this._cellCursor.getNorth());
+		}
 
 		var onPgUpDn = false;
 		if (!this._isEmptyRectangle(this._cellCursor) && !this._prevCellCursor.equals(this._cellCursor)) {
@@ -1009,6 +1049,11 @@ L.TileLayer = L.GridLayer.extend({
 		}
 
 		this._onUpdateCellCursor(horizontalDirection, verticalDirection, onPgUpDn);
+
+		// Calc 如果沒有選取區塊的話，清除所有文字選取區，避免畫面殘留
+		if (!this._cellSelectionArea && this._selections.getLayers().length !== 0) {
+			this._removeSelection();
+		}
 	},
 
 	_onDocumentRepair: function (textMsg) {
@@ -1021,18 +1066,6 @@ L.TileLayer = L.GridLayer.extend({
 			this._docRepair.fillActions(textMsg);
 			this._map.enable(false);
 			this._docRepair.show();
-		}
-	},
-
-	_onSpecialChar: function(fontList, selectedIndex) {
-		if (!this._specialChar) {
-			this._specialChar = L.control.characterMap();
-		}
-		if (!this._specialChar.isVisible()) {
-			this._specialChar.addTo(this._map);
-			this._specialChar.fillFontNames(fontList, selectedIndex);
-			this._map.enable(false);
-			this._specialChar.show();
 		}
 	},
 
@@ -1066,7 +1099,15 @@ L.TileLayer = L.GridLayer.extend({
 			this._map._setFollowing(false, null);
 		}
 		this._map.lastActionByUser = false;
-		if (!this._map._isFocused && this._map._permission === 'edit') {
+
+		if (obj.hyperlink !== undefined && obj.hyperlink.text !== undefined && obj.hyperlink.text !== undefined) {
+			this._map.hyperlinkUnderCursor = obj.hyperlink;
+		} else {
+			this._map.hyperlinkUnderCursor = null;
+		}
+
+		if (!this._map._isFocused && this._map._isCursorVisible &&
+			(modifierViewId === this._viewId) && this._map._permission === 'edit') {
 			// Regain cursor if we had been out of focus and now have input.
 			this._map.fire('editorgotfocus');
 		}
@@ -1414,7 +1455,7 @@ L.TileLayer = L.GridLayer.extend({
 		this._map.hideBusy();
 		this._map.fire('commandresult', {commandName: commandName, success: success, result: obj.result});
 
-		if (this._map.CallPythonScriptSource != null) {
+		if (this._map && this._map.CallPythonScriptSource != null) {
 			this._map.CallPythonScriptSource.postMessage(JSON.stringify({'MessageId': 'CallPythonScript-Result',
 										     'SendTime': Date.now(),
 										     'Values': obj
@@ -1900,19 +1941,13 @@ L.TileLayer = L.GridLayer.extend({
 	_updateCursorPos: function () {
 		var pixBounds = L.bounds(this._map.latLngToLayerPoint(this._visibleCursor.getSouthWest()),
 			this._map.latLngToLayerPoint(this._visibleCursor.getNorthEast()));
+		var cursorSize = pixBounds.getSize().multiplyBy(this._map.getZoomScale(this._map.getZoom()));
 		var cursorPos = this._visibleCursor.getNorthWest();
 
 		if (!this._cursorMarker) {
-			this._cursorMarker = L.cursor(cursorPos, pixBounds.getSize().multiplyBy(this._map.getZoomScale(this._map.getZoom())), {blink: true});
-		}
-		else {
-			this._cursorMarker.setLatLng(cursorPos, pixBounds.getSize().multiplyBy(this._map.getZoomScale(this._map.getZoom())));
-		}
-
-		this._map._clipboardContainer.showCursor();
-		if (this._map._isFocused && !L.Browser.mobile) {
-			// On mobile, this is causing some key input to get lost.
-			this._map.focus();
+			this._cursorMarker = L.cursor(cursorPos, cursorSize, {blink: true});
+		} else {
+			this._cursorMarker.setLatLng(cursorPos, cursorSize);
 		}
 	},
 
@@ -1943,6 +1978,15 @@ L.TileLayer = L.GridLayer.extend({
 		}, this, true);
 	},
 
+	// Add by Firefly <firefly@ossii.com.tw>
+	// 試算表文件且游標顯示的話，就隱藏它
+	_hideCursorIfVisible: function() {
+		if (this._docType === 'spreadsheet' && this._isCursorVisible) {
+			this._isCursorVisible = false;
+			this._updateCursorAndOverlay();
+		}
+	},
+
 	// enable or disable blinking cursor and  the cursor overlay depending on
 	// the state of the document (if the falgs are set)
 	_updateCursorAndOverlay: function (/*update*/) {
@@ -1950,9 +1994,9 @@ L.TileLayer = L.GridLayer.extend({
 		&& this._isCursorVisible        // only when LOK has told us it is ok
 		&& this._isFocused              // not when document is not focused
 		&& !this._isZooming             // not when zooming
-//		&& !this.isGraphicVisible()     // not when sizing / positioning graphics
 		&& !this._isEmptyRectangle(this._visibleCursor)) {
 			this._updateCursorPos();
+			this._map._clipboardContainer.showCursor();
 		}
 		else {
 			this._map._clipboardContainer.hideCursor();
@@ -2339,6 +2383,7 @@ L.TileLayer = L.GridLayer.extend({
 			this._graphicMarker.setVisible(false);
 			this._graphicMarker.dragHorizDir = undefined;
 			this._graphicMarker.dragVertDir = undefined;
+			this._removeCachedSVG();
 		}
 	},
 
@@ -2377,6 +2422,19 @@ L.TileLayer = L.GridLayer.extend({
 			this._map.sendUnoCommand('.uno:TransformDialog ', param);
 			this._graphicMarker.isDragged = false;
 			this._graphicMarker.setVisible(false);
+			this._removeCachedSVG();
+		}
+	},
+
+	/**
+	 * 移除緩衝的圖片
+	 * @author Firefly <firefly@ossii.com.tw>
+	 */
+	_removeCachedSVG: function() {
+		var extraInfo = this._graphicSelection.extraInfo;
+		if (extraInfo.id !== undefined) {
+			console.debug('delete cache SVG : ' + extraInfo.id);
+			delete this._map._cacheSVG[extraInfo.id];
 		}
 	},
 
@@ -2625,14 +2683,22 @@ L.TileLayer = L.GridLayer.extend({
 					}
 				}
 				else if (horizontalDirection !== 0 || verticalDirection != 0) {
-					var spacingX = Math.abs(this._cellCursor.getEast() - this._cellCursor.getWest()) / 4.0;
+					var mapWidth = Math.abs(mapBounds.getEast() - mapBounds.getWest());
+					var cellWidth = Math.abs(this._cellCursor.getEast() - this._cellCursor.getWest());
+					var spacingX = 6;
 					var spacingY = Math.abs((this._cellCursor.getSouth() - this._cellCursor.getNorth())) / 4.0;
 
+					// 儲存格左邊在編輯區外
 					if (this._cellCursor.getWest() < mapBounds.getWest()) {
-						scrollX = this._cellCursor.getWest() - mapBounds.getWest() - spacingX;
-					} else if (this._cellCursor.getEast() > mapBounds.getEast()) {
+						// 儲存格左邊對齊編輯區左邊
+						scrollX = this._cellCursor.getWest() - mapBounds.getWest();
+					}
+					// 儲存格右側在編輯區外，而且儲存格寬度比編輯區小
+					if (this._cellCursor.getEast() > mapBounds.getEast() && cellWidth < mapWidth) {
+						// 儲存格右邊對齊編輯區右邊
 						scrollX = this._cellCursor.getEast() - mapBounds.getEast() + spacingX;
 					}
+
 					if (this._cellCursor.getNorth() > mapBounds.getNorth()) {
 						scrollY = this._cellCursor.getNorth() - mapBounds.getNorth() + spacingY;
 					} else if (this._cellCursor.getSouth() < mapBounds.getSouth()) {
@@ -2848,24 +2914,33 @@ L.TileLayer = L.GridLayer.extend({
 			}
 		}
 		else {
-			this._textSelectionStart = null;
-			this._textSelectionEnd = null;
-			for (key in this._selectionHandles) {
-				this._map.removeLayer(this._selectionHandles[key]);
-				this._selectionHandles[key].isDragged = false;
-			}
+			this._removeSelection();
 		}
 	},
 
+	_removeSelection: function() {
+		this._textSelectionStart = null;
+		this._textSelectionEnd = null;
+		this._selectedTextContent = '';
+		for (var key in this._selectionHandles) {
+			this._map.removeLayer(this._selectionHandles[key]);
+			this._selectionHandles[key].isDragged = false;
+		}
+		this._selections.clearLayers();
+	},
+
 	_onCopy: function (e) {
+		console.debug('_onCopy', e);
 		e = e.originalEvent;
 		e.preventDefault();
 		if (this._map._clipboardContainer.getValue() !== '') {
 			L.Compatibility.clipboardSet(e, this._map._clipboardContainer.getValue());
 			this._map._clipboardContainer.setValue('');
 		} else if (this._selectionTextContent) {
-			L.Compatibility.clipboardSet(e, this._selectionTextContent);
-
+			// Modified by Firefly <firefly@ossii.com.tw>
+			// 防止從 Calc 複製的儲存格，貼上 excel 多出一列
+			var textContent = this._docType === 'spreadsheet' ? this._selectionTextContent.trim() : this._selectionTextContent;
+			L.Compatibility.clipboardSet(e, textContent);
 			// remember the copied text, for rich copy/paste inside a document
 			this._selectionTextHash = this._selectionTextContent;
 		}
@@ -2874,14 +2949,17 @@ L.TileLayer = L.GridLayer.extend({
 	},
 
 	_onCut: function (e) {
+		console.debug('_onCut', e);
 		e = e.originalEvent;
 		e.preventDefault();
 		if (this._map._clipboardContainer.getValue() !== '') {
 			L.Compatibility.clipboardSet(e, this._map._clipboardContainer.getValue());
 			this._map._clipboardContainer.setValue('');
 		} else if (this._selectionTextContent) {
-			L.Compatibility.clipboardSet(e, this._selectionTextContent);
-
+			// Modified by Firefly <firefly@ossii.com.tw>
+			// 防止從 Calc 剪下的儲存格，貼上 excel 多出一列
+			var textContent = this._docType === 'spreadsheet' ? this._selectionTextContent.trim() : this._selectionTextContent;
+			L.Compatibility.clipboardSet(e, textContent);
 			// remember the copied text, for rich copy/paste inside a document
 			this._selectionTextHash = this._selectionTextContent;
 		}
@@ -2890,6 +2968,7 @@ L.TileLayer = L.GridLayer.extend({
 	},
 
 	_onPaste: function (e) {
+		console.debug('_onPaste', e);
 		e = e.originalEvent;
 		e.preventDefault();
 
@@ -2940,23 +3019,37 @@ L.TileLayer = L.GridLayer.extend({
 			}
 		}
 
-		var types = dataTransfer.types  || [];
+		var types = dataTransfer.types || [];
 
 		// first try to transfer images
 		// TODO if we have both Files and a normal mimetype, should we handle
 		// both, or prefer one or the other?
-		for (var t = 0; t < types.length; ++t) {
-			if (types[t] === 'Files') {
-				var files = dataTransfer.files;
-				for (var f = 0; f < files.length; ++f) {
-					var file = files[f];
-					if (file.type.match(/image.*/)) {
-						var reader = new FileReader();
-						reader.onload = this._onFileLoadFunc(file);
-						reader.readAsArrayBuffer(file);
-					}
+		// for (var t = 0; t < types.length; ++t) {
+		// 	if (types[t] === 'Files') {
+		// 		var files = dataTransfer.files;
+		// 		for (var f = 0; f < files.length; ++f) {
+		// 			var file = files[f];
+		// 			if (file.type.match(/image.*/)) {
+		// 				var reader = new FileReader();
+		// 				reader.onload = this._onFileLoadFunc(file);
+		// 				reader.readAsArrayBuffer(file);
+		// 			}
+		// 		}
+		// 	}
+		// }
+
+		// 如果剪貼簿內容只有圖片的話，直接貼上圖片
+		if (types.length === 1 && types[0] === 'Files') {
+			var files = dataTransfer.files;
+			for (var f = 0; f < files.length; ++f) {
+				var file = files[f];
+				if (file.type.match(/image.*/)) {
+					var reader = new FileReader();
+					reader.onload = this._onFileLoadFunc(file);
+					reader.readAsArrayBuffer(file);
 				}
 			}
+			return;
 		}
 
 		// now try various mime types
@@ -2964,6 +3057,12 @@ L.TileLayer = L.GridLayer.extend({
 		if (this._docType === 'spreadsheet') {
 			// FIXME apparently we cannot paste the text/html or text/rtf as
 			// produced by LibreOffice in Calc from some reason
+			mimeTypes = [
+				['text/plain', 'text/plain;charset=utf-8'],
+				['Text', 'text/plain;charset=utf-8']
+			];
+		} else if (this._docType === 'presentation') {
+			// Impress is the same as Calc.
 			mimeTypes = [
 				['text/plain', 'text/plain;charset=utf-8'],
 				['Text', 'text/plain;charset=utf-8']
@@ -2988,7 +3087,7 @@ L.TileLayer = L.GridLayer.extend({
 		}
 
 		for (var i = 0; i < mimeTypes.length; ++i) {
-			for (t = 0; t < types.length; ++t) {
+			for (var t = 0; t < types.length; ++t) {
 				if (mimeTypes[i][0] === types[t]) {
 					// Modify by Firefly <firefly@ossii.com.tw>
 					var mimeType = mimeTypes[i][1];

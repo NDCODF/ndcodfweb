@@ -4,6 +4,7 @@
  * LOK_CALLBACK_STATE_CHANGED callback
  */
 
+/* global w2ui */
 L.Map.mergeOptions({
 	stateChangeHandler: true
 });
@@ -34,15 +35,20 @@ L.Map.StateChangeHandler = L.Handler.extend({
 		// 詳細紀錄 uno 指令的狀態，因為 uno 指令可能有兩種以上狀態
 		// 例如：.uno:Bold(粗體)，可能是 checked，但又被 disabled
 		// 原來的紀錄方式，無法紀錄
-		var props = {};
-		if (state === 'enabled' || state === 'disabled') {
-			props.enabled = (state === 'enabled' ? true : false);
+		var props = {enabled: true}; // 預設啟用
+		// 該 uno 指令是否禁用
+		if (state === 'disabled') {
+			props.enabled = false;
+		// 該 uno 指令是否選取(checked)
 		} else if (state === 'true' || state === 'false') {
-			props.checked = (state === 'true' ? true : false);
+			props.checked = (state === 'true');
+		// 其他值
 		} else {
 			props.value = state;
 		}
 		this._stateProperties[e.commandName] = props;
+
+		this._resetUIState(e.commandName, state);
 	},
 
 	// Add by Firefly <firefly@ossii.com.tw>
@@ -58,7 +64,8 @@ L.Map.StateChangeHandler = L.Handler.extend({
 			unoCmd = '.uno:' + unoCmd;
 		}
 
-		return this._stateProperties[unoCmd];
+		var prop = this._stateProperties[unoCmd];
+		return (prop !== undefined ? prop : {});
 	},
 
 	getItems: function() {
@@ -71,6 +78,16 @@ L.Map.StateChangeHandler = L.Handler.extend({
 		}
 
 		return this._items[unoCmd];
+	},
+
+	_resetUIState: function(commandName, state) {
+		var toolbar = w2ui['editbar'];
+		if (commandName === '.uno:Context') {
+			if (state.startsWith('編輯文字')) {
+				toolbar.uncheck('horizontaltext');
+				toolbar.uncheck('verticaltext');
+			}
+		}
 	}
 });
 

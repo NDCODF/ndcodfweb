@@ -2,7 +2,7 @@
 /*
  * Calc tile layer is used to display a spreadsheet document
  */
-
+/* global $ */
 L.CalcTileLayer = L.TileLayer.extend({
 	STD_EXTRA_WIDTH: 113, /* 2mm extra for optimal width,
 							  * 0.1986cm with TeX points,
@@ -225,6 +225,18 @@ L.CalcTileLayer = L.TileLayer.extend({
 			this._map.fire('updaterowcolumnheaders', {x: 0, y: this._map._getTopLeftPoint().y, offset: {x: 0, y: undefined}});
 			this._map._socket.sendMessage('commandvalues command=.uno:ViewAnnotationsPosition');
 		} else if (textMsg.startsWith('invalidateheader: all')) {
+			// 初始化當前的 tile 到 x,y = 0,0
+			var mcs = $('.scroll-container')[0].mcs;
+			if (this._map.getDocType() === 'spreadsheet') {
+				$('.scroll-container').mCustomScrollbar('scrollTo','top');
+			}
+			// 初始化欄列標題
+			this._map.fire('updaterowcolumnheaders', {x: 0, y: 0, offset: {x: undefined, y: undefined}});
+			// 回到原本的 x,y
+			if (this._map.getDocType() === 'spreadsheet') {
+				$('.scroll-container').mCustomScrollbar('scrollTo',[ -mcs.top, -mcs.left]);
+			}
+			// 更新欄列標題
 			this._map.fire('updaterowcolumnheaders', {x: this._map._getTopLeftPoint().x, y: this._map._getTopLeftPoint().y, offset: {x: undefined, y: undefined}});
 			this._map._socket.sendMessage('commandvalues command=.uno:ViewAnnotationsPosition');
 		} else {
@@ -378,9 +390,21 @@ L.CalcTileLayer = L.TileLayer.extend({
 			}
 			this._hiddenParts = command.hiddenparts || [];
 			this._documentInfo = textMsg;
-			var partNames = textMsg.match(/[^\r\n]+/g);
-			// only get the last matches
-			this._partNames = partNames.slice(partNames.length - this._parts);
+			var partMatch = textMsg.match(/[^\r\n]+/g);
+			// 使用新格式
+			if (command.partdetail !== undefined) {
+				var partsInfo = partMatch.slice(partMatch.length - this._parts);
+				this._partsInfo = [];
+				this._partNames = [];
+				for (var i=0; i < partsInfo.length ; i++) {
+					var json = JSON.parse(partsInfo[i]);
+					this._partsInfo.push(json);
+					this._partNames.push(json.name);
+				}
+			} else {
+				// only get the last matches
+				this._partNames = partMatch.slice(partMatch.length - this._parts);
+			}
 			this._map.fire('updateparts', {
 				selectedPart: this._selectedPart,
 				parts: this._parts,

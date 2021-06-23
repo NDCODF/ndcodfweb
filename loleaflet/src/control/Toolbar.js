@@ -16,6 +16,35 @@ L.Map.include({
 
 	_hotkeyCommands: {},
 
+	// 支援匯出的格式
+	_exportFormats: {
+		text: [
+			{format: 'pdf', label: _('PDF Document (.pdf)')},
+			{format: 'txt', label: _('TEXT Document (.txt)')},
+			{format: 'html', label: _('HTML Document (.html)')},
+			{format: 'odt', label: _('ODF text document (.odt)')},
+			{format: 'doc', label: _('Word 2003 Document (.doc)')},
+			{format: 'docx', label: _('Word Document (.docx)')},
+			{format: 'rtf', label: _('Rich Text (.rtf)')},
+			{format: 'epub', label: _('EPUB Document (.epub)')},
+		],
+		spreadsheet: [
+			{format: 'pdf', label: _('PDF Document (.pdf)')},
+			{format: 'html', label: _('HTML Document (.html)')},
+			{format: 'ods', label: _('ODF spreadsheet (.ods)')},
+			{format: 'xls', label: _('Excel 2003 Spreadsheet (.xls)')},
+			{format: 'xlsx', label: _('Excel Spreadsheet (.xlsx)')},
+			{format: 'csv', label: _('CSV (.csv)')},
+		],
+		presentation: [
+			{format: 'pdf', label: _('PDF Document (.pdf)')},
+			{format: 'html', label: _('HTML Document (.html)')},
+			{format: 'odp', label: _('ODF presentation (.odp)')},
+			{format: 'ppt', label: _('PowerPoint 2003 Presentation (.ppt)')},
+			{format: 'pptx', label: _('PowerPoint Presentation (.pptx)')},
+		]
+	},
+
 	// 右鍵選單會出現 _allowCommands 沒有的指令，暫時作法是列入未知名單中，且標記是否可用
 	_whiteCommandList: {
 		'.uno:Crop': false, // 裁剪
@@ -152,7 +181,6 @@ L.Map.include({
 		'datapilotmenu': 'datadatapilotrun',
 		'defaultcellstyles': 'defaultcharstyle',
 		'deleteallnotes': 'deleteallannotation',
-		'deletecell': 'delete',
 		'deletenote': 'deleteannotation',
 		'deleteprintarea': 'delete',
 		'deleteslide': 'deletepage',
@@ -273,6 +301,29 @@ L.Map.include({
 		'zoomminus': 'zoomout',
 		'zoomplus': 'zoomin',
 	},
+
+	// 帶參數的 uno 指令(.uno:AssignLayout?WhatLayer=xx)
+	_resorceIcon: {
+		'.uno:AssignLayout?WhatLayout:long=20': 'layout_empty', // 空白投影片
+		'.uno:AssignLayout?WhatLayout:long=19': 'layout_head01', // 只有題名
+		'.uno:AssignLayout?WhatLayout:long=0': 'layout_head03', // 題名投影片
+		'.uno:AssignLayout?WhatLayout:long=1': 'layout_head02', // 題名、內容區塊
+		'.uno:AssignLayout?WhatLayout:long=32': 'layout_textonly', // 文字置中
+
+		'.uno:AssignLayout?WhatLayout:long=3': 'layout_head02a', // 題名和2個內容區塊
+		'.uno:AssignLayout?WhatLayout:long=12': 'layout_head03c', // 題名、內容區塊和2個內容區塊
+		'.uno:AssignLayout?WhatLayout:long=15': 'layout_head03b', // 題名、2個內容區塊和內容區塊
+		'.uno:AssignLayout?WhatLayout:long=14': 'layout_head02b', // 題名、內容區塊在內容區塊之上
+		'.uno:AssignLayout?WhatLayout:long=16': 'layout_head03a', // 題名、2個內容區塊在內容區塊之上
+		'.uno:AssignLayout?WhatLayout:long=18': 'layout_head04', // 題名、4個內容區塊
+		'.uno:AssignLayout?WhatLayout:long=34': 'layout_head06', // 題名、6個內容區塊
+
+		'.uno:AssignLayout?WhatLayout:long=28': 'layout_vertical01', // 垂直題名、垂直文字
+		'.uno:AssignLayout?WhatLayout:long=27': 'layout_vertical02', // 垂直題名、文字、圖表
+		'.uno:AssignLayout?WhatLayout:long=29': 'layout_head02', // 題名、垂直文字
+		'.uno:AssignLayout?WhatLayout:long=30': 'layout_head02a', // 題名、垂直文字、美術圖形
+	},
+
 	//-----------------------------------------------------------------
 
 	applyFont: function (fontName) {
@@ -301,6 +352,16 @@ L.Map.include({
 		return undefined;
 	},
 
+	// 取得目前文件所支援的匯出格式
+	getExportFormats: function() {
+		var docType = this.getDocType();
+		if (docType === 'drawing') {
+			docType = 'presentation';
+		}
+		var formats = this._exportFormats[docType];
+		return (formats !== undefined ? formats : []);
+	},
+
 	downloadAs: function (name, format, options, id) {
 		if (this._fatal) {
 			return;
@@ -324,8 +385,7 @@ L.Map.include({
 		// 如果是下載或列印 pdf，而且 server 也沒有指定浮水印的話
 		// 就詢問使用者是否加浮水印
 		if (format === 'pdf' && this.options.watermark === undefined) {
-			this.fire('executeDialog', {
-				dialog: 'PdfWatermarkText',
+			L.dialog.run('PdfWatermarkText', {
 				args: {
 					name: name,
 					id: id,
@@ -414,8 +474,69 @@ L.Map.include({
 		if (extendedData !== undefined) {
 			msg += ' extendedData=' + extendedData;
 		}
-
+		// 顯示檔案儲存中訊息
+		this.showBusy(_('Saving...'));
 		this._socket.sendMessage(msg);
+	},
+
+	// Add by Firefly <firefly@ossii.com.tw>
+	// 關閉檔案
+	closeDocument: function() {
+		var map = this;
+		// 文件在可編輯狀態
+		if (this._permission === 'edit') {
+			this._stopCloseDocument = false;
+			// 有強制寫入或文件已修改過
+			if (this.forceCellCommit() || this._everModified) {
+				// 通知等待 uno:Save 結果
+				this._waitSaveResult = true;
+				// 0.5 秒後呼叫存檔
+				setTimeout(function() {
+					map.save(true, true);
+				}, 500);
+				// 超過 60 秒未結束，則直接結束
+				setTimeout(function() {
+					console.debug('Save files for more than 60 seconds. Send UI_Close signal.');
+					map.sendUICloseMessage();
+				}, 60000);
+			} else {
+				this.sendUICloseMessage();
+			}
+		} else {
+			this.sendUICloseMessage();
+		}
+	},
+
+	/**
+	 * 令 OxOOL 重新取得文件狀態
+	 * @author Firefly <firefly@ossii.com.tw>
+	 */
+	getDocumentStatus: function() {
+		// 指令稍微延遲再送出
+		setTimeout(function() {
+			this._socket.sendMessage('status');
+		}.bind(this), 100);
+	},
+
+	// Add by Firefly <firefly@ossii.com.tw>
+	// 通知關閉編輯畫面通知
+	sendUICloseMessage: function() {
+		if (this._stopCloseDocument === true) {
+			this._stopCloseDocument = false;
+			return;
+		}
+		// 未被包在 iframe 中，直接關閉視窗
+		if (window.self === window.top) {
+			window.close();
+		}
+		var map = this;
+		if (window.ThisIsAMobileApp) {
+			window.webkit.messageHandlers.lool.postMessage('BYE', '*');
+		} else {
+			map.fire('postMessage', {msgId: 'close', args: {EverModified: map._everModified, Deprecated: true}});
+			map.fire('postMessage', {msgId: 'UI_Close', args: {EverModified: map._everModified}});
+		}
+		map.remove();
 	},
 
 	sendUnoCommand: function (command, json) {
@@ -431,6 +552,10 @@ L.Map.include({
 				 command = encodeURI(command);
 			}
 			//----------------------------------------
+			//攔截雙次點擊過得快捷功能
+			if (this._preventDoubleTrigger(command)) {
+				return;
+			}
 			this._socket.sendMessage('uno ' + command + (json ? ' ' + JSON.stringify(json) : ''));
 		}
 	},
@@ -449,6 +574,12 @@ L.Map.include({
 	// Add by Firefly <firefly@ossii.com.tw>
 	// 依據 itemKey 設定右鍵選單 icon 圖示
 	contextMenuIcon: function($itemElement, itemKey, item) {
+		// 如果有 checktype
+		if (item.checktype !== undefined && item.checked) {
+			$itemElement.addClass('lo-menu-item-checked');
+		} else {
+			$itemElement.removeClass('lo-menu-item-checked');
+		}
 		var hasinit = $itemElement.hasClass('_init_');
 		if (hasinit) {return '';}
 		$itemElement.addClass('_init_')
@@ -457,16 +588,15 @@ L.Map.include({
 		var iconURL = 'url("' + this.getUnoCommandIcon(itemKey) + '")';
 		$(icon).css('background-image', iconURL);
 		$itemElement.append(icon);
-		// 如果有 checktype
-		if (item.checktype !== undefined && item.checked) {
-			$itemElement.addClass('lo-menu-item-checked');
-		}
 		return '';
 	},
 
 	// Add by Firefly <firefly@ossii.com.tw>
 	// 把 uno 指令轉換成 icon 圖示 URL
 	getUnoCommandIcon: function(unoCommand) {
+		if (this._resorceIcon[unoCommand] !== undefined) {
+			return 'images/res/' + this._resorceIcon[unoCommand] + '.svg';
+		}
 		var command = (unoCommand.startsWith('.uno:') ? unoCommand.substr(5) : unoCommand).toLowerCase();
 		var icon = this._iconAlias[command] !== undefined ? this._iconAlias[command] : command;
 
@@ -638,10 +768,10 @@ L.Map.include({
 							}
 						}
 					}
-					this.fire('executeDialog', {dialog: dialogName, args: args});
+					L.dialog.run(dialogName, {args: args});
 					dialog = true;
 				} else {
-					this.fire('executeDialog', {dialog: 'Action', id: command});
+					L.dialog.run('Action', {id: command});
 					dialog = true;
 				}
 				// 有指定 callback，也執行 callback
@@ -680,6 +810,7 @@ L.Map.include({
  	 */
 	forceCellCommit: function () {
 		var map = this;
+		var isModified = false;
 		// 如果試試算表，檢查儲存格是否在輸入狀態
 		if (map._permission === 'edit'
 			&& map.getDocType() === 'spreadsheet'
@@ -688,6 +819,7 @@ L.Map.include({
 			this._hasForceCellCommit = true; // 設定 commit 狀態，避免重複 commit
 			// 游標在編輯狀態
 			if (map._docLayer._isCursorVisible === true) {
+				isModified = true;
 				this._socket.sendMessage('setmodified'); // 設定文件為已修改狀態
 				// 送出 enter 按鍵
 				map.focus();
@@ -697,6 +829,7 @@ L.Map.include({
 			}
 			this._hasForceCellCommit = false;
 		}
+		return isModified;
 	},
 
 	/*
@@ -773,5 +906,21 @@ L.Map.include({
 				map.focus();
 			}
 		});
+	},
+
+	// 阻擋雙擊的指令輸出的最後一道防線
+	_preventDoubleTrigger: function(command) {
+		var map = this;
+		if (command === '.uno:Text') {
+			if (map.stateChangeHandler._stateProperties['.uno:Text'].checked) {
+				return true;
+			}
+		}
+		if (command === '.uno:VerticalText') {
+			if (map.stateChangeHandler._stateProperties['.uno:VerticalText'].checked) {
+				return true;
+			}
+		}
+		return false;
 	}
 });

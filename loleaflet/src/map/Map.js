@@ -189,7 +189,7 @@ L.Map = L.Evented.extend({
 		}, this);
 		this.on('doclayerinit', function() {
 			var docType = this._docLayer._docType;
-			if (docType === 'draw')
+			if (docType === 'drawing')
 				docType = 'presentation';
 
 			// 試算表文件縮放最小為 60%
@@ -271,6 +271,18 @@ L.Map = L.Evented.extend({
 				this._docLayer.clearAnnotations();
 			}
 			this.initializeModificationIndicator();
+		}, this);
+
+		// 處理 commandresult
+		this._waitSaveResult = false;
+		this.on('commandresult', function(e) {
+			// 如果是 uno:Save 且 _waitSaveResult 為 true 的話
+			// 表示是按下關閉按鈕，等待存檔完畢
+			if (e.commandName === '.uno:Save' && this._waitSaveResult) {
+				console.debug('Save complete. Send UI_Close signal.');
+				this._waitSaveResult = false;
+				this.sendUICloseMessage();
+			}
 		}, this);
 	},
 

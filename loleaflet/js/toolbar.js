@@ -118,6 +118,12 @@ function onClick(e, id, item, subItem) {
 	else {
 		throw new Error('unknown id: ' + id);
 	}
+	// Add by Tommy: Make the status of insert text
+	if (map.getDocType() === 'presentation' && (item.id === 'horizontaltext' || item.id === 'verticaltext')) {
+		if (item.checked === true) {
+			return;
+		}
+	}
 	var docLayer = map._docLayer;
 	if (id !== 'zoomin' && id !== 'zoomout') {
 		map.focus();
@@ -286,21 +292,15 @@ function onClick(e, id, item, subItem) {
 		L.toggleFullScreen();
 	}
 	else if (id === 'close' || id === 'closemobile') {
-		if (window.ThisIsAMobileApp) {
-			window.webkit.messageHandlers.lool.postMessage('BYE', '*');
-		} else {
-			map.fire('postMessage', {msgId: 'close', args: {EverModified: map._everModified, Deprecated: true}});
-			map.fire('postMessage', {msgId: 'UI_Close', args: {EverModified: map._everModified}});
-		}
-		map.remove();
+		map.closeDocument();
 	}
 	else if (id === 'keyboardBtn') {
-		map._clipboardContainer.enableVirtualKeyboard();
+		map._clipboardContainer.lockVirtualKeyboard(false);
 		statusbar.hide('keyboardBtn');
 		statusbar.show('keyboard_hideBtn');
 	}
 	else if (id === 'keyboard_hideBtn') {
-		map._clipboardContainer.disableVirtualKeyboard();
+		map._clipboardContainer.lockVirtualKeyboard(true);
 		statusbar.hide('keyboard_hideBtn');
 		statusbar.show('keyboardBtn');
 	}
@@ -318,6 +318,9 @@ function onClick(e, id, item, subItem) {
 		if (symbolDialog !== undefined) {
 			$(symbolDialog).dialog('open');
 		}
+	}
+	else if (id === 'documentLogo') {
+		map.showLOAboutDialog();
 	}
 	else {
 		console.log('有 id 未處理 : ' + id)
@@ -349,6 +352,7 @@ function toggleMobileSearchBar() {
 	if (mobileSearchBar.css('display') === 'none') {
 		mobileSearchBar.css('display', '');
 		$('#search-input').focus();
+		$('#search-input').prop('disabled', false);
 	} else {
 		mobileSearchBar.css('display', 'none');
 	}
@@ -642,7 +646,7 @@ function insertShapes() {
 	var width = 10;
 	var $grid = $('.insertshape-grid');
 
-	if ($grid.children().size() > 0)
+	if ($grid.children().length > 0)
 		return;
 
 	for (var s in shapes) {
@@ -691,33 +695,33 @@ var transition = [
 	{img: 'transition-shape', label: _('Shape'), action: {type:3, subtype: 12}}, // 形狀
 	{img: 'transition-box', label: _('Box'), action: {type:12, subtype: 25}}, // 方塊
 	{img: 'transition-wedge', label: _('Wedge'), action: {type:25, subtype: 48}}, // 楔入
-	{img: 'transition-venetian-blinds', label: _('Venetian Blinds'), action: {type:41, subtype: 13}}, // 百葉窗
+	//{img: 'transition-venetian-blinds', label: _('Venetian Blinds'), action: {type:41, subtype: 13}}, // 百葉窗
 	{img: 'transition-fade', label: _('Fade'), action: {type:37, subtype: 104}}, // 淡化
-	{img: 'transition-cut', label: _('Cut'), action: {type:1, subtype: 104}}, // 剪下
+	//{img: 'transition-cut', label: _('Cut'), action: {type:1, subtype: 104}}, // 剪下
 	{img: 'transition-cover', label: _('Cover'), action: {type:36, subtype: 98}}, // 覆蓋
 	{img: 'transition-dissolve', label: _('Dissolve'), action: {type:40, subtype: 0}}, // 溶解
-	{img: 'transition-random', label: _('Random'), action: {type:42, subtype: 0}}, // 隨機
-	{img: 'transition-comb', label: _('Comb'), action: {type:35, subtype: 110}}, // 梳紋
+	//{img: 'transition-random', label: _('Random'), action: {type:42, subtype: 0}}, // 隨機
+	//{img: 'transition-comb', label: _('Comb'), action: {type:35, subtype: 110}}, // 梳紋
 	{img: 'transition-push', label: _('Push'), action: {type:35, subtype: 98}}, // 推展
 	{img: 'transition-split', label: _('Split'), action: {type:4, subtype: 14}}, // 分割
 	{img: 'transition-diagonal-squares', label: _('Diagonal'), action: {type:34, subtype: 96}}, // 對角
-	{img: 'transition-tile-flip', label: _('Tiles'), action: {type:21, subtype: 108}}, // 拼貼
-	{img: 'transition-cube-turning', label: _('Cube'), action: {type:21, subtype:12}}, // 立方體
-	{img: 'transition-revolving-circles', label: _('Circles'), action: {type:21, subtype: 27}}, // 圓形
-	{img: 'transition-turning-helix', label: _('Helix'), action: {type:21, subtype: 55}}, // 螺旋
-	{img: 'transition-fall', label: _('Fall'), action: {type:21, subtype: 1}}, // 向下落
-	{img: 'transition-turn-around', label: _('Turn Around'), action: {type:21, subtype: 2}}, // 左右翻轉
-	{img: 'transition-iris', label: _('Iris'), action: {type:21, subtype: 3}}, // 光圈
-	{img: 'transition-turn-down', label: _('Turn Down'), action: {type:21, subtype: 4}}, // 向下轉
-	{img: 'transition-rochade', label: _('Rochade'), action: {type:21, subtype: 5}}, // 左右置換
-	{img: 'transition-venetian-blinds-3d', label: _('3D Denetian'), action: {type:21, subtype: 6}}, // 3D 百葉窗
-	{img: 'transition-static', label: _('Static'), action: {type:21, subtype: 8}}, // 靜態
-	{img: 'transition-finedissolve', label: _('Fine Dissolve'), action: {type:21, subtype: 9}}, // 細緻溶解
-	{img: 'transition-vortex', label: _('Vortex'), action: {type:21, subtype: 13}}, // 漩渦
-	{img: 'transition-ripple', label: _('Ripple'), action: {type:21, subtype: 14}}, // 漣漪
-	{img: 'transition-glitter', label: _('Glitter'), action: {type:21, subtype: 26}}, // 閃耀
-	{img: 'transition-honeycomb', label: _('Honeycomb'), action: {type:21, subtype: 31}}, // 蜂巢
-	{img: 'transition-newsflash', label: _('Newsflash'), action: {type:43, subtype: 114}} // 新聞快報
+	//{img: 'transition-tile-flip', label: _('Tiles'), action: {type:21, subtype: 108}}, // 拼貼
+	// {img: 'transition-cube-turning', label: _('Cube'), action: {type:21, subtype:12}}, // 立方體
+	// {img: 'transition-revolving-circles', label: _('Circles'), action: {type:21, subtype: 27}}, // 圓形
+	// {img: 'transition-turning-helix', label: _('Helix'), action: {type:21, subtype: 55}}, // 螺旋
+	// {img: 'transition-fall', label: _('Fall'), action: {type:21, subtype: 1}}, // 向下落
+	// {img: 'transition-turn-around', label: _('Turn Around'), action: {type:21, subtype: 2}}, // 左右翻轉
+	// {img: 'transition-iris', label: _('Iris'), action: {type:21, subtype: 3}}, // 光圈
+	// {img: 'transition-turn-down', label: _('Turn Down'), action: {type:21, subtype: 4}}, // 向下轉
+	// {img: 'transition-rochade', label: _('Rochade'), action: {type:21, subtype: 5}}, // 左右置換
+	// {img: 'transition-venetian-blinds-3d', label: _('3D Denetian'), action: {type:21, subtype: 6}}, // 3D 百葉窗
+	// {img: 'transition-static', label: _('Static'), action: {type:21, subtype: 8}}, // 靜態
+	// {img: 'transition-finedissolve', label: _('Fine Dissolve'), action: {type:21, subtype: 9}}, // 細緻溶解
+	// {img: 'transition-vortex', label: _('Vortex'), action: {type:21, subtype: 13}}, // 漩渦
+	// {img: 'transition-ripple', label: _('Ripple'), action: {type:21, subtype: 14}}, // 漣漪
+	// {img: 'transition-glitter', label: _('Glitter'), action: {type:21, subtype: 26}}, // 閃耀
+	// {img: 'transition-honeycomb', label: _('Honeycomb'), action: {type:21, subtype: 31}}, // 蜂巢
+	// {img: 'transition-newsflash', label: _('Newsflash'), action: {type:43, subtype: 114}} // 新聞快報
 ];
 
 // 投影片轉場
@@ -725,7 +729,7 @@ function animationEffects() {
 	var width = 5;
 	var $grid = $('.animationeffects-grid');
 
-	if ($grid.children().size() > 0)
+	if ($grid.children().length > 0)
 		return;
 
 	var rows = Math.ceil(transition.length / width);
@@ -755,6 +759,7 @@ function animationEffects() {
 			var action = $(e.target).data().action;
 			var macro = 'macro:///OxOOL.Impress.SetTransition(' + action.type + ',' + action.subtype + ')';
 			map.sendUnoCommand(macro);
+			map.getDocumentStatus();
 			closePopup();
 		}
 	});
@@ -821,7 +826,8 @@ function createToolbar() {
 		{type: 'button',  id: 'undo',  img: 'undo', hint: _UNO('.uno:Undo'), uno: 'Undo', disabled: true, mobile: false},
 		{type: 'button',  id: 'redo',  img: 'redo', hint: _UNO('.uno:Redo'), uno: 'Redo', disabled: true, mobile: false},
 		{type: 'button',  id: 'formatpaintbrush',  img: 'copyformat', hint: _UNO('.uno:FormatPaintbrush'), uno: 'FormatPaintbrush', mobile: false},
-		{type: 'button',  id: 'reset',  img: 'deleteformat', hint: _UNO('.uno:ResetAttributes', 'text'), uno: 'ResetAttributes', mobile: false},
+		{type: 'button',  id: 'resetattributes',  img: 'deleteformat', hint: _UNO('.uno:ResetAttributes', 'text'), uno: 'ResetAttributes', mobile: false, hidden: true},
+		{type: 'button',  id: 'setdefault',  img: 'deleteformat', hint: _UNO('.uno:SetDefault', 'presentation'), uno: 'SetDefault', mobile: false, hidden: true},
 		{type: 'break', mobile: false},
 		{type: 'html', id: 'styles',
 			html: '<select class="styles-select"' + (L.Browser.mobile ? ' data-minimum-results-for-search="Infinity"' : '')  + '><option>Default Style</option></select>',
@@ -974,7 +980,7 @@ function initMobileToolbar(toolItems) {
 		name: 'actionbar',
 		tooltip: null,
 		items: [
-			{type: 'button',  id: 'closemobile',  img: 'closemobile'},
+			{type: 'button', id: 'documentLogo', img: 'document-logo'},
 			{type: 'spacer'},
 			{type: 'button', id: 'keyboardBtn', img: 'keyboard', hidden:true},
 			{type: 'button', id: 'keyboard_hideBtn', img: 'keyboard_hide', hidden:true},
@@ -997,6 +1003,7 @@ function initMobileToolbar(toolItems) {
 				'<p id="currently-msg">' + _('Current') + ' - <b><span id="current-editor"></span></b></p>' +
 				'</div>'
 			},
+			{type: 'button',  id: 'closemobile',  img: 'closebuttonimage'},
 		],
 		onClick: function (e) {
 			onClick(e, e.target);
@@ -1016,6 +1023,17 @@ function initMobileToolbar(toolItems) {
 				map.on('addview', onAddView);
 				map.on('removeview', onRemoveView);
 			}
+			// 修改文件左上角的 logo
+			var docType = map.getDocType();
+			var documentLogo = '' ;
+			if (docType === 'text') {
+				documentLogo = 'writer-icon-img';
+			} else if (docType === 'spreadsheet') {
+				documentLogo = 'calc-icon-img';
+			} else if (docType === 'presentation' || docType === 'drawing') {
+				documentLogo = 'impress-icon-img';
+			}
+			$('.document-logo').addClass(documentLogo);
 		}
 	});
 	toolbar.bind('touchstart', function(e) {
@@ -1530,6 +1548,12 @@ function unoCmdToToolbarId(commandname)
 			id = 'rightpara';
 			break;
 		}
+	} else if (map.getDocType() === 'presentation') {
+		switch (id) {
+		case 'text':
+			id = 'horizontaltext';
+			break;
+		}
 	}
 	return id;
 }
@@ -1780,7 +1804,7 @@ function onDocLayerInit() {
 
 	switch (docType) {
 	case 'spreadsheet':
-		toolbarUp.show('textalign', 'wraptext', 'breakspacing', 'insertannotation', 'conditionalformaticonset',
+		toolbarUp.show('resetattributes', 'textalign', 'wraptext', 'breakspacing', 'insertannotation', 'conditionalformaticonset',
 			'numberformatcurrency', 'numberformatpercent', 'numberformatdecimal', 'numberformatdate',
 			'numberformatincdecimals', 'numberformatdecdecimals', 'break-number', 'togglemergecells', 'breakmergecells',
 			'setborderstyle', 'sortascending', 'sortdescending', 'breaksorting');
@@ -1852,7 +1876,7 @@ function onDocLayerInit() {
 		$('#presentation-toolbar').hide();
 		break;
 	case 'text':
-		toolbarUp.show('leftpara', 'centerpara', 'rightpara', 'justifypara', 'breakpara', 'linespacing',
+		toolbarUp.show('resetattributes', 'leftpara', 'centerpara', 'rightpara', 'justifypara', 'breakpara', 'linespacing',
 			'breakspacing', 'defaultbullet', 'defaultnumbering', 'breakbullet',
 			'inserttable', 'insertannotation');
 
@@ -1893,7 +1917,7 @@ function onDocLayerInit() {
 		if (!map['wopi'].HideExportOption) {
 			presentationToolbar.show('presentation', 'presentationbreak');
 		}
-		toolbarUp.show('insertannotation', 'animationeffects');
+		toolbarUp.show('setdefault', 'insertannotation', 'animationeffects');
 
 		if (!_inMobileMode()) {
 			statusbar.insert('left', [
@@ -1935,12 +1959,10 @@ function onDocLayerInit() {
 		$('.styles-select').prop('data-minimum-results-for-search', 'Infinity');
 		$('.fonts-select').prop('data-minimum-results-for-search', 'Infinity');
 		$('.fontsizes-select').prop('data-minimum-results-for-search', 'Infinity');
-		$('#document-name-input').hide();
 	} else {
 		nUsers = _('%n users');
 		oneUser = _('1 user');
 		noUser = _('0 users');
-		$('#document-name-input').show();
 	}
 
 	updateUserListCount();
@@ -2058,6 +2080,17 @@ function onCommandStateChanged(e) {
 		$('.styles-select').val(state).trigger('change');
 	}
 	else if (commandName === '.uno:CharFontName') {
+		// 字型名稱可能會傳來 disabled 而不是名稱
+		if (state === 'disabled') {
+			$('.fonts-select').prop('disabled', true);
+			toolbar.disable('fontcolor');
+			toolbar.disable('backcolor');
+			return;
+		}
+
+		$('.fonts-select').prop('disabled', false);
+		toolbar.enable('fontcolor');
+		toolbar.enable('backcolor');
 		$('.fonts-select option').each(function () {
 			value = this.value;
 			if (value.toLowerCase() === state.toLowerCase()) {
@@ -2066,7 +2099,7 @@ function onCommandStateChanged(e) {
 			}
 		});
 		if (!found) {
-			// we need to add the size
+			// we need to add the name
 			$('.fonts-select')
 				.append($('<option></option>')
 				.text(state));
@@ -2075,6 +2108,13 @@ function onCommandStateChanged(e) {
 		$('.fonts-select').val(state).trigger('change');
 	}
 	else if (commandName === '.uno:FontHeight') {
+		// 字型大小可能會傳來 disabled 而不是數值
+		if (state === 'disabled') {
+			$('.fontsizes-select').prop('disabled', true);
+			return;
+		}
+
+		$('.fontsizes-select').prop('disabled', false);
 		if (state === '0') {
 			state = '';
 		}
@@ -2094,36 +2134,41 @@ function onCommandStateChanged(e) {
 	}
 	else if (commandName === '.uno:FontColor' || commandName === '.uno:Color') {
 		// confusingly, the .uno: command is named differently in Writer, Calc and Impress
-		color = parseInt(e.state);
-		if (color === -1) {
-			color = 'transparent';
+		if (!isNaN(color = parseInt(state))) {
+			if (color === -1) {
+				color = 'transparent';
+			} else {
+				color = color.toString(16);
+				color = '#' + Array(7 - color.length).join('0') + color;
+			}
+			div = L.DomUtil.get('fontcolorindicator');
+			if (div) {
+				L.DomUtil.setStyle(div, 'background', color);
+			}
 		}
-		else {
-
-			color = color.toString(16);
-			color = '#' + Array(7 - color.length).join('0') + color;
-		}
-		div = L.DomUtil.get('fontcolorindicator');
-		if (div) {
-			L.DomUtil.setStyle(div, 'background', color);
-		}
+		return;
 	}
 	else if (commandName === '.uno:BackColor' || commandName === '.uno:BackgroundColor' || commandName === '.uno:CharBackColor') {
 		// confusingly, the .uno: command is named differently in Writer, Calc and Impress
-		color = parseInt(e.state);
-		if (color === -1) {
-			color = 'transparent';
+		if (!isNaN(color = parseInt(state))) {
+			if (color === -1) {
+				color = 'transparent';
+			}
+			else {
+				color = color.toString(16);
+				color = '#' + Array(7 - color.length).join('0') + color;
+			}
+			div = L.DomUtil.get('backcolorindicator');
+			if (div) {
+				L.DomUtil.setStyle(div, 'background', color);
+			}
 		}
-		else {
-			color = color.toString(16);
-			color = '#' + Array(7 - color.length).join('0') + color;
-		}
-		div = L.DomUtil.get('backcolorindicator');
-		if (div) {
-			L.DomUtil.setStyle(div, 'background', color);
-		}
+		return;
 	}
 	else if (commandName === '.uno:LanguageStatus') {
+		if (state === 'enabled' || state === 'disabled') {
+			state = '';
+		}
 		updateToolbarItem(statusbar, 'LanguageStatus', $('#LanguageStatus').html(_(state)).parent().html());
 	}
 	else if (commandName === '.uno:ModifiedStatus') {
@@ -2141,22 +2186,34 @@ function onCommandStateChanged(e) {
 		updateToolbarItem(statusbar, 'modifiedstatuslabel', html);
 	}
 	else if (commandName === '.uno:StatusDocPos') {
-		state = toLocalePattern('Sheet %1 of %2', 'Sheet (\\d+) of (\\d+)', state, '%1', '%2');
+		if (state === 'enabled' || state === 'disabled') {
+			state = '';
+		}
 		updateToolbarItem(statusbar, 'StatusDocPos', $('#StatusDocPos').html(state ? state : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp').parent().html());
 	}
 	else if (commandName === '.uno:RowColSelCount') {
-		state = toLocalePattern('$1 rows, $2 columns selected', '(\\d+) rows, (\\d+) columns selected', state, '$1', '$2');
-		state = toLocalePattern('$1 of $2 records found', '(\\d+) of (\\d+) records found', state, '$1', '$2');
+		if (state === 'enabled' || state === 'disabled') {
+			state = '';
+		}
 		updateToolbarItem(statusbar, 'RowColSelCount', $('#RowColSelCount').html(state ? state : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp').parent().html());
 	}
 	else if (commandName === '.uno:InsertMode') {
+		if (state === 'enabled' || state === 'disabled') {
+			state = '';
+		}
 		updateToolbarItem(statusbar, 'InsertMode', $('#InsertMode').html(state ? L.Styles.insertMode[state].toLocaleString() : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp').parent().html());
 	}
 	else if (commandName === '.uno:StatusSelectionMode' ||
 		 commandName === '.uno:SelectionMode') {
+		if (state === 'enabled' || state === 'disabled') {
+			state = '';
+		}
 		updateToolbarItem(statusbar, 'StatusSelectionMode', $('#StatusSelectionMode').html(state ? L.Styles.selectionMode[state].toLocaleString() : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp').parent().html());
 	}
 	else if (commandName == '.uno:StateTableCell') {
+		if (state === 'enabled' || state === 'disabled') {
+			state = '';
+		}
 		updateToolbarItem(statusbar, 'StateTableCell', $('#StateTableCell').html(state ? localizeStateTableCell(state) : '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp').parent().html());
 	}
 	else if (commandName === '.uno:StatusBarFunc') {
@@ -2200,6 +2257,10 @@ function onCommandStateChanged(e) {
 			toolbar.disable('insertsymbolmenu');
 		}
 	}
+	else if (commandName === '.uno:Text' || commandName === '.uno:VerticalText')
+	{
+		commandName = String(commandName);
+	}
 
 	var id = unoCmdToToolbarId(commandName);
 	if (state === 'true') {
@@ -2216,16 +2277,17 @@ function onCommandStateChanged(e) {
 	}
 	// Change the toolbar button states if we are in editmode
 	// If in non-edit mode, will be taken care of when permission is changed to 'edit'
-	else if (map._permission === 'edit' && (state === 'enabled' || state === 'disabled')) {
+	else if (map._permission === 'edit') {
 		var toolbarUp = toolbar;
 		if (_inMobileMode()) {
 			toolbarUp = statusbar;
 		}
-		if (state === 'enabled') {
-			toolbarUp.enable(id);
-		} else {
+		// 只有明確地指示 disabled 才要真正禁用，否則一律啟用
+		if (state === 'disabled') {
 			toolbarUp.uncheck(id);
 			toolbarUp.disable(id);
+		} else {
+			toolbarUp.enable(id);
 		}
 	}
 }
@@ -2425,7 +2487,10 @@ function onUpdatePermission(e) {
 		}
 		//
 		if (e.perm === 'edit') {
-			statusbar.show('keyboardBtn', 'break-keyboardBtn');
+			// 文字文件需要鍵盤鎖功能
+			if (map.getDocType() === 'text') {
+				statusbar.show('keyboardBtn', 'break-keyboardBtn');
+			}
 			statusbar.show('undo', 'redo');
 			mobileEditBar.css('top', toolbarUp.outerHeight() - 1).show();
 			var height = mobileEditBar.outerHeight();
@@ -2861,9 +2926,7 @@ function _showOrHideCloseButton() {
 	if (closebutton && !L.Browser.mobile && map._permission === 'edit') {
 		$('#closebuttonwrapper').show();
 		$('#closebutton').click(function() {
-			map.fire('postMessage', {msgId: 'close', args: {EverModified: map._everModified, Deprecated: true}});
-			map.fire('postMessage', {msgId: 'UI_Close', args: {EverModified: map._everModified}});
-			map.remove();
+			map.closeDocument();
 		});
 	} else {
 		$('#closebuttonwrapper').hide();

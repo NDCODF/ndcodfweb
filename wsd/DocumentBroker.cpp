@@ -979,7 +979,13 @@ bool DocumentBroker::saveToStorageInternal(const std::string& sessionId, bool su
     {
         LOG_ERR("Cannot save docKey [" << _docKey << "] to storage URI [" << uriAnonym <<
                 "]. Invalid or expired access token. Notifying client.");
-        it->second->sendTextFrame("error: cmd=storage kind=saveunauthorized");
+        it->second->sendTextFrame("error: cmd=storage kind=code401");
+    }
+    else if (storageSaveResult.getResult() == StorageBase::SaveResult::FORBIDDEN)
+    {
+        LOG_ERR("Cannot save docKey [" << _docKey << "] to storage URI [" << uriAnonym <<
+                "]. The file contains personal or sensitive information.");
+        it->second->sendTextFrame("error: cmd=storage kind=code403");
     }
     else if (storageSaveResult.getResult() == StorageBase::SaveResult::FAILED)
     {
@@ -999,6 +1005,16 @@ bool DocumentBroker::saveToStorageInternal(const std::string& sessionId, bool su
         oss << "warning: " << storageSaveResult.getResponseString();
         it->second->sendTextFrame(oss.str());
     }
+    // Add by Firefly <firefly@ossii.com.tw>
+    // 收到 http code 499 (自訂訊息)
+    // 把錯誤訊息轉給 client
+    else if (storageSaveResult.getResult() == StorageBase::SaveResult::STATUS_CODE_499)
+    {
+        LOG_ERR("499: docKey [" << _docKey << "] to URI [" << uriAnonym << "]. (Message:\"" << storageSaveResult.getResponseString() << "\")");
+        std::ostringstream oss;
+        oss << "warning: " << storageSaveResult.getResponseString();
+        it->second->sendTextFrame(oss.str());
+    }
     else if (storageSaveResult.getResult() == StorageBase::SaveResult::DOC_CHANGED
              || storageSaveResult.getResult() == StorageBase::SaveResult::CONFLICT)
     {
@@ -1009,6 +1025,25 @@ bool DocumentBroker::saveToStorageInternal(const std::string& sessionId, bool su
             message = "error: cmd=storage kind=documentconflict";
 
         broadcastMessage(message);
+    } else if (storageSaveResult.getResult() == StorageBase::SaveResult::NOT_FOUND)
+    {
+        LOG_ERR("PutFile return code 404!");
+        it->second->sendTextFrame("error: cmd=storage kind=code404");
+    }
+    else if (storageSaveResult.getResult() == StorageBase::SaveResult::REQUEST_ENTITY_TOO_LARGE)
+    {
+        LOG_ERR("PutFile return code 413!");
+        it->second->sendTextFrame("error: cmd=storage kind=code413");
+    }
+    else if (storageSaveResult.getResult() == StorageBase::SaveResult::INTERNAL_SERVER_ERROR)
+    {
+        LOG_ERR("PutFile return code 500!");
+        it->second->sendTextFrame("error: cmd=storage kind=code500");
+    }
+    else if (storageSaveResult.getResult() == StorageBase::SaveResult::NOT_IMPLEMENTED)
+    {
+        LOG_ERR("PutFile return code 501!");
+        it->second->sendTextFrame("error: cmd=storage kind=code501");
     }
 
     return false;

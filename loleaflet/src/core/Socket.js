@@ -212,7 +212,7 @@ L.Socket = L.Class.extend({
 			msg += ' timestamp=' + this._map.options.timestamp;
 		}
 		if (this._map._docPassword) {
-			msg += ' password=' + this._map._docPassword;
+			msg += ' password=' + encodeURIComponent(this._map._docPassword);
 		}
 		if (String.locale) {
 			msg += ' lang=' + String.locale;
@@ -552,6 +552,10 @@ L.Socket = L.Class.extend({
 				vex.dialogID = vex.globalID - 1;
 
 				return;
+			}
+			// Add by Firefly <firefly@ossii.com.tw>
+			else if (errorMessages.storage[command.errorKind] !== undefined) {
+				storageError = errorMessages.storage[command.errorKind];
 			}
 
 			// Skip empty errors (and allow for suppressing errors by making them blank).
@@ -1017,6 +1021,9 @@ L.Socket = L.Class.extend({
 				selectedParts.forEach(function (item) {
 					command.selectedParts.push(parseInt(item));
 				});
+			}
+			else if (tokens[i].substring(0, 11) === 'partdetail=') {
+				command.partdetail = tokens[i].substring(11);
 			}
 		}
 		if (command.tileWidth && command.tileHeight && this._map._docLayer) {

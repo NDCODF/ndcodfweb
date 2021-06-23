@@ -3,7 +3,7 @@
 * Control.Menubar
 */
 
-/* global $ _ _UNO vex revHistoryEnabled closebutton */
+/* global $ _ _UNO vex revHistoryEnabled closebutton*/
 L.Control.Menubar = L.Control.extend({
 	// TODO: Some mechanism to stop the need to copy duplicate menus (eg. Help)
 	options: {
@@ -51,19 +51,43 @@ L.Control.Menubar = L.Control.extend({
 			{name: '.uno:ViewMenu', id: 'view', type: 'menu', menu: [
 				{name: '.uno:FullScreen', id: 'fullscreen', type: 'action'},
 				{type: '--'},
-				{name: '.uno:ZoomPlus', id: 'zoomin', type: 'action'},
-				{name: '.uno:ZoomMinus', id: 'zoomout', type: 'action'},
+				{icon: '.uno:ZoomPlus', name: 'Zoom In', id: 'zoomin', type: 'action'},
+				{icon: '.uno:ZoomMinus', name: 'Zoom Out', id: 'zoomout', type: 'action'},
 				{name: '.uno:Zoom100Percent', id: 'zoomreset', type: 'action'},
 				{type: '--'},
 				{uno: '.uno:ControlCodes', hotkey: 'Ctrl+F10'}
 			]
 			},
 			{name: '.uno:InsertMenu', id: 'insert', type: 'menu', menu: [
+				{uno: '.uno:InsertPagebreak', hotkey: 'Ctrl+Enter'},
+				{uno: '.uno:InsertColumnBreak', hotkey: 'Ctrl+Shift+Enter'},
+				{type: '--'},
 				{name: _('Local Image...'), id: 'insertgraphic', type: 'action'},
 				{name: '.uno:InsertGraphic', id: 'insertgraphicremote', type: 'action'},
 				{name: '.uno:InsertAnnotation', id: 'insertcomment', type: 'action', hotkey: 'Ctrl+Alt+C'},
 				{uno: '.uno:DrawText'},
 				{uno: '.uno:InsertObjectChart'},
+				{type: '--'},
+				{uno: '.uno:HyperlinkDialog', hotkey: 'Ctrl+K'},
+				{uno: '.uno:InsertBookmark'},
+				{type: '--'},
+				{uno: '.uno:InsertSymbol'},
+				{name: _('Horizontal Line'), uno: '.uno:HorizontalLine'},
+				{name: '.uno:FormattingMarkMenu', type: 'menu', menu: [
+					{uno: '.uno:InsertNonBreakingSpace'},
+					{uno: '.uno:InsertHardHyphen'},
+					{uno: '.uno:InsertSoftHyphen'},
+					{uno: '.uno:InsertZWSP'},
+					{uno: '.uno:InsertZWNBSP'},
+					{uno: '.uno:InsertLRM'},
+					{uno: '.uno:InsertRLM'}]},
+				{type: '--'},
+				{uno: '.uno:InsertFootnote', hotkey: 'Ctrl+Alt+F'},
+				{uno: '.uno:InsertEndnote', hotkey: 'Ctrl+Alt+D'},
+				{name: '.uno:IndexesMenu', type: 'menu', menu: [
+					{uno: '.uno:InsertIndexesEntry'},
+					{uno: '.uno:InsertAuthoritiesEntry'},
+					{uno: '.uno:InsertMultiIndex'}]},
 				{type: '--'},
 				{name: '.uno:InsertField', type: 'menu', menu: [
 					{uno: '.uno:InsertPageNumberField'},
@@ -79,29 +103,7 @@ L.Control.Menubar = L.Control.extend({
 						{name: _('All'), disabled: true, id: 'insertheader', tag: '_ALL_', uno: '.uno:InsertPageHeader?'}]},
 					{name: '.uno:InsertPageFooter', type: 'menu', menu: [
 						{name: _('All'), disabled: true, id: 'insertfooter', tag: '_ALL_', uno: '.uno:InsertPageFooter?'}]}
-				]},
-				{uno: '.uno:InsertFootnote', hotkey: 'Ctrl+Alt+F'},
-				{uno: '.uno:InsertEndnote', hotkey: 'Ctrl+Alt+D'},
-				{type: '--'},
-				{uno: '.uno:InsertPagebreak', hotkey: 'Ctrl+Enter'},
-				{uno: '.uno:InsertColumnBreak', hotkey: 'Ctrl+Shift+Enter'},
-				{type: '--'},
-				{uno: '.uno:HyperlinkDialog', hotkey: 'Ctrl+K'},
-				{uno: '.uno:InsertBookmark'},
-				{uno: '.uno:InsertSymbol'},
-				{name: _('Horizontal Line'), uno: '.uno:HorizontalLine'},
-				{name: '.uno:FormattingMarkMenu', type: 'menu', menu: [
-					{uno: '.uno:InsertNonBreakingSpace'},
-					{uno: '.uno:InsertHardHyphen'},
-					{uno: '.uno:InsertSoftHyphen'},
-					{uno: '.uno:InsertZWSP'},
-					{uno: '.uno:InsertZWNBSP'},
-					{uno: '.uno:InsertLRM'},
-					{uno: '.uno:InsertRLM'}]},
-				{name: '.uno:IndexesMenu', type: 'menu', menu: [
-					{uno: '.uno:InsertIndexesEntry'},
-					{uno: '.uno:InsertAuthoritiesEntry'},
-					{uno: '.uno:InsertMultiIndex'}]},
+				]}
 			]},
 			{name: '.uno:FormatMenu', type: 'menu', menu: [
 				{name: '.uno:FormatTextMenu', type: 'menu', menu: [
@@ -285,9 +287,7 @@ L.Control.Menubar = L.Control.extend({
 				{type: '--'},
 				{uno: '.uno:HyperlinkDialog', hotkey: 'Ctrl+K'},
 				{type: '--'},
-				{uno: '.uno:InsertSymbol'},
-				{type: '--'},
-				{uno: '.uno:HeaderAndFooter'}]
+				{uno: '.uno:InsertSymbol'}]
 			},
 			{name: '.uno:FormatMenu', type: 'menu', menu: [
 				{uno: '.uno:FontDialog'},
@@ -433,9 +433,10 @@ L.Control.Menubar = L.Control.extend({
 					{uno: '.uno:DataFilterHideAutoFilter'}]},
 				{type: '--'},
 				{name: '.uno:GroupOutlineMenu', type: 'menu', menu: [
-					{uno: '.uno:Group'},
+					{name: '.uno:Group', id: 'dialog:RowOrColGroup'},
 					{uno: '.uno:Ungroup'},
 					{type: '--'},
+					{uno: '.uno:AutoOutline'},
 					{uno: '.uno:ClearOutline'},
 					{type: '--'},
 					{uno: '.uno:HideDetail'},
@@ -563,11 +564,17 @@ L.Control.Menubar = L.Control.extend({
 			while (this._menubarCont.hasChildNodes()) {
 				this._menubarCont.removeChild(this._menubarCont.firstChild);
 			}
+
+			this._createFileIcon();
 			// Add document specific menu
 			this._loadMenubar(this._map.getDocType());
-			this._createFileIcon();
 			this._bindMenuEvent();
 			this._initialized = true;
+			// 等 menubar 初始化完畢
+			// 再顯示最後修改時間
+			$('#menu-last-mod').show();
+			// 顯示檔案名稱
+			$('#document-name-input').show();
 		}
 		// 非編輯模式或手機模式時，不顯示選單
 		if (e.perm !== 'edit' || L.Browser.mobile) {
@@ -783,6 +790,11 @@ L.Control.Menubar = L.Control.extend({
 				this._map.sendUnoCommand(unoCommand + args);
 			}
 			return;
+		}
+		if (unoCommand === '.uno:Text') {
+			if (this._map.stateChangeHandler._stateProperties[unoCommand].checked) {
+				return;
+			}
 		}
 		this._map.executeAllowedCommand(unoCommand);
 	},

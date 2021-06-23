@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-07-01 12:05+0800\n"
+"POT-Creation-Date: 2021-05-05 12:03+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -208,7 +208,8 @@ msgid "Username"
 msgstr "帳號"
 
 #: admin/src/AdminSocketGlobalFunction.js:31
-#: admin/src/AdminSocketGlobalFunction.js:54
+#: admin/src/AdminSocketGlobalFunction.js:54 src/control/Control.Tabs.js:138
+#: uiconfig/dialogs/ProtectTable.js:21 uiconfig/dialogs/ProtectTable.js:22
 msgid "Password"
 msgstr "密碼"
 
@@ -217,18 +218,22 @@ msgid "Verification"
 msgstr "驗證"
 
 #: admin/src/AdminSocketGlobalFunction.js:35
-#: admin/src/AdminSocketGlobalFunction.js:59 js/toolbar.js:1040
-#: js/toolbar.js:1291 src/layer/marker/Annotation.js:181 src/map/Map.js:108
+#: admin/src/AdminSocketGlobalFunction.js:59 js/toolbar.js:1101
+#: js/toolbar.js:1372 src/layer/marker/Annotation.js:181 src/map/Map.js:109
 #: uiconfig/dialogs/AddTableAtEnd.js:46
 #: uiconfig/dialogs/BindingLineDialog.js:134 uiconfig/dialogs/ColumnWidth.js:66
-#: uiconfig/dialogs/DeleteCell.js:86 uiconfig/dialogs/ExampleDialog.js:54
-#: uiconfig/dialogs/GotoPage.js:76 uiconfig/dialogs/InsertBreak.js:57
-#: uiconfig/dialogs/InsertCell.js:54 uiconfig/dialogs/InsertTable.js:71
-#: uiconfig/dialogs/MoveTable.js:58 uiconfig/dialogs/OXSaveAs.js:48
-#: uiconfig/dialogs/PdfWatermarkText.js:54 uiconfig/dialogs/RemoveCell.js:54
+#: uiconfig/dialogs/DeleteCell.js:86 uiconfig/dialogs/dlgSecurePrint.js:73
+#: uiconfig/dialogs/ExampleDialog.js:54 uiconfig/dialogs/GotoPage.js:76
+#: uiconfig/dialogs/HeaderAndFooter.js:150 uiconfig/dialogs/InsertBreak.js:57
+#: uiconfig/dialogs/InsertCell.js:54 uiconfig/dialogs/InsertImage.js:102
+#: uiconfig/dialogs/InsertTable.js:71 uiconfig/dialogs/MoveTable.js:58
+#: uiconfig/dialogs/OXSaveAs.js:54 uiconfig/dialogs/PdfWatermarkText.js:54
+#: uiconfig/dialogs/ProtectTable.js:59 uiconfig/dialogs/RemoveCell.js:54
 #: uiconfig/dialogs/RemoveTable.js:47 uiconfig/dialogs/RenameTable.js:49
-#: uiconfig/dialogs/RowHeight.js:66 uiconfig/dialogs/ShowTable.js:55
-#: uiconfig/dialogs/TraceChangeMode.js:65
+#: uiconfig/dialogs/RowHeight.js:66 uiconfig/dialogs/RowOrColGroup.js:64
+#: uiconfig/dialogs/SetHyperLinkTable.js:148
+#: uiconfig/dialogs/SetTabBgColor.js:57 uiconfig/dialogs/ShowTable.js:55
+#: uiconfig/dialogs/SplitCell.js:106 uiconfig/dialogs/TraceChangeMode.js:65
 msgid "Cancel"
 msgstr "取消"
 
@@ -240,17 +245,21 @@ msgstr "請輸入新的帳號及密碼"
 msgid "Confirm password"
 msgstr "確認密碼"
 
-#: admin/src/AdminSocketGlobalFunction.js:58 src/map/Map.js:107
+#: admin/src/AdminSocketGlobalFunction.js:58 src/map/Map.js:108
 #: uiconfig/dialogs/AddTableAtEnd.js:39
 #: uiconfig/dialogs/BindingLineDialog.js:113 uiconfig/dialogs/ColumnWidth.js:49
-#: uiconfig/dialogs/DeleteCell.js:66 uiconfig/dialogs/ExampleDialog.js:48
-#: uiconfig/dialogs/GotoPage.js:63 uiconfig/dialogs/InsertBreak.js:50
+#: uiconfig/dialogs/DeleteCell.js:66 uiconfig/dialogs/dlgSecurePrint.js:44
+#: uiconfig/dialogs/ExampleDialog.js:48 uiconfig/dialogs/GotoPage.js:63
+#: uiconfig/dialogs/HeaderAndFooter.js:114 uiconfig/dialogs/InsertBreak.js:50
 #: uiconfig/dialogs/InsertCell.js:41 uiconfig/dialogs/InsertTable.js:64
-#: uiconfig/dialogs/MoveTable.js:51 uiconfig/dialogs/OXSaveAs.js:38
-#: uiconfig/dialogs/PdfWatermarkText.js:40 uiconfig/dialogs/RemoveCell.js:41
-#: uiconfig/dialogs/RemoveTable.js:40 uiconfig/dialogs/RenameTable.js:42
-#: uiconfig/dialogs/RowHeight.js:49 uiconfig/dialogs/ShowTable.js:46
-#: uiconfig/dialogs/TraceChangeMode.js:58
+#: uiconfig/dialogs/MoveTable.js:51 uiconfig/dialogs/OXSaveAs.js:39
+#: uiconfig/dialogs/PdfWatermarkText.js:40 uiconfig/dialogs/ProtectTable.js:51
+#: uiconfig/dialogs/RemoveCell.js:41 uiconfig/dialogs/RemoveTable.js:40
+#: uiconfig/dialogs/RenameTable.js:42 uiconfig/dialogs/RowHeight.js:49
+#: uiconfig/dialogs/RowOrColGroup.js:50
+#: uiconfig/dialogs/SetHyperLinkTable.js:105
+#: uiconfig/dialogs/SetTabBgColor.js:38 uiconfig/dialogs/ShowTable.js:46
+#: uiconfig/dialogs/SplitCell.js:75 uiconfig/dialogs/TraceChangeMode.js:58
 msgid "OK"
 msgstr "確定"
 
@@ -313,368 +322,294 @@ msgstr " 分鐘"
 msgid " s"
 msgstr " 秒"
 
-#: js/toolbar.js:684 js/toolbar.js:1836 uiconfig/dialogs/InsertBreak.js:19
+#: js/toolbar.js:714 js/toolbar.js:1940 uiconfig/dialogs/InsertBreak.js:19
 msgid "None"
 msgstr "無"
 
-#: js/toolbar.js:685
+#: js/toolbar.js:715
 msgid "Wipe"
 msgstr ""
 
-#: js/toolbar.js:686
+#: js/toolbar.js:716
 msgid "Wheel"
 msgstr ""
 
-#: js/toolbar.js:687
+#: js/toolbar.js:717
 msgid "Uncover"
 msgstr ""
 
-#: js/toolbar.js:688
+#: js/toolbar.js:718
 msgid "Bars"
 msgstr ""
 
-#: js/toolbar.js:689
+#: js/toolbar.js:719
 msgid "Checkers"
 msgstr ""
 
-#: js/toolbar.js:690
+#: js/toolbar.js:720
 msgid "Shape"
 msgstr ""
 
-#: js/toolbar.js:691
+#: js/toolbar.js:721
 msgid "Box"
 msgstr ""
 
-#: js/toolbar.js:692
+#: js/toolbar.js:722
 msgid "Wedge"
 msgstr ""
 
-#: js/toolbar.js:693
-msgid "Venetian Blinds"
-msgstr ""
-
-#: js/toolbar.js:694
+#: js/toolbar.js:724
 msgid "Fade"
 msgstr ""
 
-#: js/toolbar.js:695
-msgid "Cut"
-msgstr ""
-
-#: js/toolbar.js:696
+#: js/toolbar.js:726
 msgid "Cover"
 msgstr ""
 
-#: js/toolbar.js:697
+#: js/toolbar.js:727
 msgid "Dissolve"
 msgstr ""
 
-#: js/toolbar.js:698
-msgid "Random"
-msgstr ""
-
-#: js/toolbar.js:699
-msgid "Comb"
-msgstr ""
-
-#: js/toolbar.js:700
+#: js/toolbar.js:730
 msgid "Push"
 msgstr ""
 
-#: js/toolbar.js:701
+#: js/toolbar.js:731
 msgid "Split"
 msgstr ""
 
-#: js/toolbar.js:702
+#: js/toolbar.js:732
 msgid "Diagonal"
 msgstr ""
 
-#: js/toolbar.js:703
-msgid "Tiles"
-msgstr ""
-
-#: js/toolbar.js:704
-msgid "Cube"
-msgstr ""
-
-#: js/toolbar.js:705
-msgid "Circles"
-msgstr ""
-
-#: js/toolbar.js:706
-msgid "Helix"
-msgstr ""
-
-#: js/toolbar.js:707
-msgid "Fall"
-msgstr ""
-
-#: js/toolbar.js:708
-msgid "Turn Around"
-msgstr ""
-
-#: js/toolbar.js:709
-msgid "Iris"
-msgstr ""
-
-#: js/toolbar.js:710
-msgid "Turn Down"
-msgstr ""
-
-#: js/toolbar.js:711
-msgid "Rochade"
-msgstr ""
-
-#: js/toolbar.js:712
-msgid "3D Denetian"
-msgstr ""
-
-#: js/toolbar.js:713
-msgid "Static"
-msgstr ""
-
-#: js/toolbar.js:714
-msgid "Fine Dissolve"
-msgstr ""
-
-#: js/toolbar.js:715
-msgid "Vortex"
-msgstr ""
-
-#: js/toolbar.js:716
-msgid "Ripple"
-msgstr ""
-
-#: js/toolbar.js:717
-msgid "Glitter"
-msgstr ""
-
-#: js/toolbar.js:718
-msgid "Honeycomb"
-msgstr ""
-
-#: js/toolbar.js:719
-msgid "Newsflash"
-msgstr ""
-
-#: js/toolbar.js:814
+#: js/toolbar.js:845
 msgid "More..."
 msgstr "其他..."
 
-#: js/toolbar.js:875
+#: js/toolbar.js:907
 msgid "Borders"
 msgstr "邊框"
 
-#: js/toolbar.js:935
+#: js/toolbar.js:968
 msgid "Insert table"
 msgstr "插入表格"
 
-#: js/toolbar.js:940
+#: js/toolbar.js:973
 msgid "Insert Local Image"
 msgstr "插入電腦圖片"
 
-#: js/toolbar.js:944
+#: js/toolbar.js:977
 msgid "Insert shapes"
 msgstr "插入形狀"
 
-#: js/toolbar.js:952 js/toolbar.js:2673
+#: js/toolbar.js:985 uiconfig/dialogs/SetHyperLinkTable.js:91
+msgid "Worksheet link"
+msgstr "工作表連結"
+
+#: js/toolbar.js:990 js/toolbar.js:2779
 msgid "Common symbols"
 msgstr "常用符號"
 
-#: js/toolbar.js:953
+#: js/toolbar.js:991
 msgid "More symbols"
 msgstr "更多特殊字元"
 
-#: js/toolbar.js:993 js/toolbar.js:1409
+#: js/toolbar.js:1035 js/toolbar.js:1490
 msgid "Always follow the editor"
 msgstr "總是跟隨編輯器"
 
-#: js/toolbar.js:996 js/toolbar.js:1412
+#: js/toolbar.js:1038 js/toolbar.js:1493
 msgid "Current"
 msgstr "目前"
 
-#: js/toolbar.js:1041 js/toolbar.js:1292
-msgid "Accept"
-msgstr "接受"
+#: js/toolbar.js:1092 js/toolbar.js:1363
+msgid "Select function"
+msgstr "選取函式"
 
-#: js/toolbar.js:1074 js/toolbar.js:1339
-msgid "First sheet"
-msgstr "第一個工作表"
-
-#: js/toolbar.js:1075 js/toolbar.js:1340
-msgid "Previous sheet"
-msgstr "上一個工作表"
-
-#: js/toolbar.js:1076 js/toolbar.js:1341
-msgid "Next sheet"
-msgstr "下一個工作表"
-
-#: js/toolbar.js:1077 js/toolbar.js:1342
-msgid "Last sheet"
-msgstr "最後的工作表"
-
-#: js/toolbar.js:1078 js/toolbar.js:1343
-msgid "Insert sheet"
-msgstr "插入工作表"
-
-#: js/toolbar.js:1169 js/toolbar.js:1393 src/control/Preview.js:31
-msgid "Search:"
-msgstr "搜尋："
-
-#: js/toolbar.js:1176 js/toolbar.js:1400 src/control/Preview.js:38
-msgid "Cancel the search"
-msgstr "取消搜尋"
-
-#: js/toolbar.js:1208
-msgid "Delete"
-msgstr "刪除"
-
-#: js/toolbar.js:1361 src/control/Control.Menubar.js:32
-#: src/control/Preview.js:40
-msgid "Fullscreen presentation"
-msgstr "全螢幕呈現"
-
-#: js/toolbar.js:1367 src/control/Control.Menubar.js:33
-#: uiconfig/dialogs/MoveTable.js:28
-msgid "Move"
-msgstr "移動"
-
-#: js/toolbar.js:1420
-msgid "Reset zoom"
-msgstr "重設遠近"
-
-#: js/toolbar.js:1423 src/control/Preview.js:44
-msgid "Zoom factor"
-msgstr "縮放係數"
-
-#: js/toolbar.js:1493
-msgid "%user has joined"
-msgstr "%user 已加入"
-
-#: js/toolbar.js:1494
-msgid "%user has left"
-msgstr "%user 已離開"
-
-#: js/toolbar.js:1800
-msgid "Number of Sheets"
-msgstr "工作表數量"
-
-#: js/toolbar.js:1805
-msgid "Selected range of cells"
-msgstr "所選的儲存格範圍"
-
-#: js/toolbar.js:1810 js/toolbar.js:1871
-msgid "Entering text mode"
-msgstr "輸入文字模式"
-
-#: js/toolbar.js:1815 js/toolbar.js:1881 js/toolbar.js:1906
-msgid "Text Language"
-msgstr "文字語言"
-
-#: js/toolbar.js:1820 js/toolbar.js:1876
-msgid "Selection Mode"
-msgstr "選取模式"
-
-#: js/toolbar.js:1825
-msgid "Choice of functions"
-msgstr "函式選擇"
-
-#: js/toolbar.js:1829
-msgid "Average"
-msgstr "平均值"
-
-#: js/toolbar.js:1830
-msgid "CountA"
-msgstr "全計數"
-
-#: js/toolbar.js:1831
-msgid "Count"
-msgstr "數計數"
-
-#: js/toolbar.js:1832
-msgid "Maximum"
-msgstr "最大"
-
-#: js/toolbar.js:1833
-msgid "Minimum"
-msgstr "最小"
-
-#: js/toolbar.js:1834
+#: js/toolbar.js:1094 js/toolbar.js:1365 js/toolbar.js:1938
 msgid "Sum"
 msgstr "總和"
 
-#: js/toolbar.js:1835
+#: js/toolbar.js:1095 js/toolbar.js:1366 js/toolbar.js:1933
+msgid "Average"
+msgstr "平均"
+
+#: js/toolbar.js:1096 js/toolbar.js:1367 js/toolbar.js:1937
+msgid "Minimum"
+msgstr "最小"
+
+#: js/toolbar.js:1097 js/toolbar.js:1368 js/toolbar.js:1936
+msgid "Maximum"
+msgstr "最大"
+
+#: js/toolbar.js:1098 js/toolbar.js:1369 js/toolbar.js:1935
+msgid "Count"
+msgstr "計數"
+
+#: js/toolbar.js:1102 js/toolbar.js:1373
+msgid "Accept"
+msgstr "接受"
+
+#: js/toolbar.js:1135 js/toolbar.js:1420
+msgid "First sheet"
+msgstr "第一個工作表"
+
+#: js/toolbar.js:1136 js/toolbar.js:1421
+msgid "Previous sheet"
+msgstr "上一個工作表"
+
+#: js/toolbar.js:1137 js/toolbar.js:1422
+msgid "Next sheet"
+msgstr "下一個工作表"
+
+#: js/toolbar.js:1138 js/toolbar.js:1423
+msgid "Last sheet"
+msgstr "最後的工作表"
+
+#: js/toolbar.js:1139 js/toolbar.js:1424
+msgid "Insert sheet"
+msgstr "插入工作表"
+
+#: js/toolbar.js:1230 js/toolbar.js:1474 src/control/Preview.js:28
+msgid "Search:"
+msgstr "搜尋："
+
+#: js/toolbar.js:1237 js/toolbar.js:1481 src/control/Preview.js:35
+msgid "Cancel the search"
+msgstr "取消搜尋"
+
+#: js/toolbar.js:1269
+msgid "Delete"
+msgstr "刪除"
+
+#: js/toolbar.js:1442 src/control/Preview.js:37 src/othermessages.js:34
+msgid "Fullscreen presentation"
+msgstr "投影片放映"
+
+#: js/toolbar.js:1448 src/othermessages.js:35 uiconfig/dialogs/MoveTable.js:28
+msgid "Move"
+msgstr "移動"
+
+#: js/toolbar.js:1501
+msgid "Reset zoom"
+msgstr "重設遠近"
+
+#: js/toolbar.js:1504 src/control/Preview.js:41
+msgid "Zoom factor"
+msgstr "縮放係數"
+
+#: js/toolbar.js:1574
+msgid "%user has joined"
+msgstr "%user 已加入"
+
+#: js/toolbar.js:1575
+msgid "%user has left"
+msgstr "%user 已離開"
+
+#: js/toolbar.js:1904
+msgid "Number of Sheets"
+msgstr "工作表數量"
+
+#: js/toolbar.js:1909
+msgid "Selected range of cells"
+msgstr "所選的儲存格範圍"
+
+#: js/toolbar.js:1914 js/toolbar.js:1971
+msgid "Entering text mode"
+msgstr "輸入文字模式"
+
+#: js/toolbar.js:1919 js/toolbar.js:1981 js/toolbar.js:2007
+msgid "Text Language"
+msgstr "文字語言"
+
+#: js/toolbar.js:1924 js/toolbar.js:1976
+msgid "Selection Mode"
+msgstr "選取模式"
+
+#: js/toolbar.js:1929
+msgid "Choice of functions"
+msgstr "函式選擇"
+
+#: js/toolbar.js:1934
+msgid "CountA"
+msgstr "全計數"
+
+#: js/toolbar.js:1939
 msgid "Selection count"
 msgstr "選取計數"
 
-#: js/toolbar.js:1861
+#: js/toolbar.js:1961
 msgid "Number of Pages"
 msgstr "頁數"
 
-#: js/toolbar.js:1866
+#: js/toolbar.js:1966
 msgid "Word Counter"
 msgstr "字數統計"
 
-#: js/toolbar.js:1901
+#: js/toolbar.js:2002
 msgid "Number of Slides"
 msgstr "投影片數"
 
-#: js/toolbar.js:1938
+#: js/toolbar.js:2038
 msgid "%n users"
 msgstr "%n 位使用者"
 
-#: js/toolbar.js:1939
+#: js/toolbar.js:2039
 msgid "1 user"
 msgstr "1 位使用者"
 
-#: js/toolbar.js:1940
+#: js/toolbar.js:2040
 msgid "0 users"
 msgstr "0 位使用者"
 
-#: js/toolbar.js:2136
+#: js/toolbar.js:2235
 msgid "Document saved"
 msgstr "文件已儲存"
 
-#: js/toolbar.js:2297 uiconfig/dialogs/InsertBreak.js:30
+#: js/toolbar.js:2400 uiconfig/dialogs/InsertBreak.js:30
 msgid "Style"
 msgstr "樣式"
 
-#: js/toolbar.js:2320 uiconfig/dialogs/BindingLineDialog.js:36
+#: js/toolbar.js:2423 uiconfig/dialogs/BindingLineDialog.js:36
 msgid "Font"
 msgstr "字型"
 
-#: js/toolbar.js:2341
+#: js/toolbar.js:2444
 msgid "Previous slide"
 msgstr "上一張投影片"
 
-#: js/toolbar.js:2342
+#: js/toolbar.js:2445
 msgid "Next slide"
 msgstr "下一張投影片"
 
-#: js/toolbar.js:2428
+#: js/toolbar.js:2531
 msgid ""
 "Conflict Undo/Redo with multiple users. Please use document repair to resolve"
 msgstr "多位使用者間取消動作/再次動作發生衝突。請使用文件修復來解決問題"
 
-#: js/toolbar.js:2840 src/control/Control.DocumentRepair.js:95
+#: js/toolbar.js:2946 src/control/Control.DocumentRepair.js:95
 msgid "You"
 msgstr "您"
 
-#: js/toolbar.js:2846
+#: js/toolbar.js:2952
 msgid "Readonly"
 msgstr "唯讀"
 
-#: src/control/Control.AlertDialog.js:42
+#: src/control/Control.AlertDialog.js:43
 msgid "Open link"
 msgstr "開啟連結"
 
-#: src/control/Control.AlertDialog.js:54
+#: src/control/Control.AlertDialog.js:55
 msgid "Edit"
 msgstr "編輯"
 
-#: src/control/Control.AlertDialog.js:75
+#: src/control/Control.AlertDialog.js:76
 msgid "The server encountered a %0 error while parsing the %1 command."
 msgstr "伺服器在解析 %1 指令時遭遇 %0 錯誤。"
+
+#: src/control/Control.ContextMenu.js:178
+msgid "Edit worksheet hyperlink "
+msgstr "編輯工作表連結"
 
 #: src/control/Control.DocumentRepair.js:33
 msgid "Repair Document"
@@ -704,145 +639,15 @@ msgstr "時間戳記"
 msgid "Jump to state"
 msgstr "跳回狀態"
 
-#: src/control/Control.Menubar.js:11
-msgid "Share..."
-msgstr "分享..."
-
-#: src/control/Control.Menubar.js:12
-msgid "See revision history"
-msgstr "檢視修訂記錄"
-
-#: src/control/Control.Menubar.js:13
-msgid "Download as"
-msgstr "下載為"
-
-#: src/control/Control.Menubar.js:14 src/control/Preview.js:198
-#: src/control/Preview.js:210 src/control/Preview.js:220
-msgid "PDF Document (.pdf)"
-msgstr "PDF 文件 (.pdf)"
-
-#: src/control/Control.Menubar.js:15 src/control/Preview.js:199
-msgid "TEXT Document (.txt)"
-msgstr "純文字文件 (.txt)"
-
-#: src/control/Control.Menubar.js:16 src/control/Preview.js:200
-#: src/control/Preview.js:211 src/control/Preview.js:221
-msgid "HTML Document (.html)"
-msgstr "HTML 文件(.html)"
-
-#: src/control/Control.Menubar.js:17 src/control/Preview.js:201
-msgid "ODF text document (.odt)"
-msgstr "ODF 文字文件 (.odt)"
-
-#: src/control/Control.Menubar.js:18 src/control/Preview.js:212
-msgid "ODF spreadsheet (.ods)"
-msgstr "ODF 試算表 (.ods)"
-
-#: src/control/Control.Menubar.js:19 src/control/Preview.js:222
-msgid "ODF presentation (.odp)"
-msgstr "ODF 簡報 (.odp)"
-
-#: src/control/Control.Menubar.js:20 src/control/Preview.js:202
-msgid "Word 2003 Document (.doc)"
-msgstr "Word 2003 文件 (.doc)"
-
-#: src/control/Control.Menubar.js:21 src/control/Preview.js:213
-msgid "Excel 2003 Spreadsheet (.xls)"
-msgstr "Excel 2003 試算表 (.xls)"
-
-#: src/control/Control.Menubar.js:22 src/control/Preview.js:223
-msgid "PowerPoint 2003 Presentation (.ppt)"
-msgstr "PowerPoint 2003 簡報 (.ppt)"
-
-#: src/control/Control.Menubar.js:23 src/control/Preview.js:203
-msgid "Word Document (.docx)"
-msgstr "Word 文件 (.docx)"
-
-#: src/control/Control.Menubar.js:24 src/control/Preview.js:214
-msgid "Excel Spreadsheet (.xlsx)"
-msgstr "Excel 試算表 (.xlsx)"
-
-#: src/control/Control.Menubar.js:25 src/control/Preview.js:224
-msgid "PowerPoint Presentation (.pptx)"
-msgstr "PowerPoint 簡報 (.pptx)"
-
-#: src/control/Control.Menubar.js:26 src/control/Preview.js:204
-msgid "Rich Text (.rtf)"
-msgstr "RTF 文件 (.rtf)"
-
-#: src/control/Control.Menubar.js:27 src/control/Preview.js:215
-msgid "CSV (.csv)"
-msgstr ""
-
-#: src/control/Control.Menubar.js:28 src/control/Preview.js:205
-msgid "EPUB Document (.epub)"
-msgstr "EPUB 電子書 (.epub)"
-
-#: src/control/Control.Menubar.js:29
-msgid "Sign document"
-msgstr "簽署文件"
-
-#: src/control/Control.Menubar.js:30
-msgid "Repair"
-msgstr "修復"
-
-#: src/control/Control.Menubar.js:31
-msgid "Local Image..."
-msgstr "電腦圖片"
-
-#: src/control/Control.Menubar.js:34
-msgid "All"
-msgstr "全部"
-
-#: src/control/Control.Menubar.js:35
-msgid "Horizontal Line"
-msgstr "水平線"
-
-#: src/control/Control.Menubar.js:36
-msgid "None (Do not check spelling)"
-msgstr "無 (不檢查拼字)"
-
-#: src/control/Control.Menubar.js:37 uiconfig/dialogs/ShowKeyboardHelp.js:59
-msgid "Keyboard shortcuts"
-msgstr "鍵盤快捷鍵"
-
-#: src/control/Control.Menubar.js:38 src/control/Preview.js:67
-msgid "About"
-msgstr "關於"
-
-#: src/control/Control.Menubar.js:39 uiconfig/dialogs/BindingLineDialog.js:98
-msgid "Binding line"
-msgstr "裝訂線"
-
-#: src/control/Control.Menubar.js:40
-msgid "Insert on the left side of page"
-msgstr "插入頁面左側"
-
-#: src/control/Control.Menubar.js:41
-msgid "Insert on the right side of page"
-msgstr "插入頁面右側"
-
-#: src/control/Control.Menubar.js:42
-msgid "Insert on the top side of page"
-msgstr "插入頁面上方"
-
-#: src/control/Control.Menubar.js:43
-msgid "Insert on the bottom side of page"
-msgstr "插入頁面底部"
-
-#: src/control/Control.Menubar.js:44
-msgid "Customize"
-msgstr "自訂"
-
-#: src/control/Control.Menubar.js:121
+#: src/control/Control.Menubar.js:88
 msgid "Reset to Default Language"
 msgstr "重設回預設語言"
 
-#: src/control/Control.Menubar.js:359
+#: src/control/Control.Menubar.js:322
 msgid "All contents of the header will be deleted and can not be restored."
 msgstr "會刪除此頁首的所有內容，而且無法復原。"
 
-#: src/control/Control.Menubar.js:361
+#: src/control/Control.Menubar.js:324
 msgid "All contents of the footer will be deleted and can not be restored."
 msgstr "會刪除此頁尾的所有內容，而且無法復原。"
 
@@ -854,21 +659,89 @@ msgstr "往上捲動註解"
 msgid "Scroll down annotations"
 msgstr "往下捲動註解"
 
-#: src/control/Control.Tabs.js:67
+#: src/control/Control.Tabs.js:68
 msgid "Insert sheet before this"
 msgstr "在這之前插入工作表"
 
-#: src/control/Control.Tabs.js:73
+#: src/control/Control.Tabs.js:74
 msgid "Insert sheet after this"
 msgstr "在這之後插入工作表"
 
-#: src/control/Permission.js:28
+#: src/control/Control.Tabs.js:136
+msgid "Unprotect sheet"
+msgstr "取消工作表保護"
+
+#: src/control/Permission.js:32
 msgid "Edit in ODF format"
 msgstr "以 ODF 格式編輯"
 
-#: src/control/Preview.js:149 uiconfig/dialogs/OXSaveAs.js:20
+#: src/control/Preview.js:149 uiconfig/dialogs/OXSaveAs.js:21
 msgid "File name:"
 msgstr "檔案名稱："
+
+#: src/control/Preview.js:201 src/control/Preview.js:213
+#: src/control/Preview.js:223 src/control/Toolbar.js:22
+#: src/control/Toolbar.js:32 src/control/Toolbar.js:40 src/othermessages.js:16
+msgid "PDF Document (.pdf)"
+msgstr "PDF 文件 (.pdf)"
+
+#: src/control/Preview.js:202 src/control/Toolbar.js:23 src/othermessages.js:17
+msgid "TEXT Document (.txt)"
+msgstr "純文字文件 (.txt)"
+
+#: src/control/Preview.js:203 src/control/Preview.js:214
+#: src/control/Preview.js:224 src/control/Toolbar.js:24
+#: src/control/Toolbar.js:33 src/control/Toolbar.js:41 src/othermessages.js:18
+msgid "HTML Document (.html)"
+msgstr "HTML 文件(.html)"
+
+#: src/control/Preview.js:204 src/control/Toolbar.js:25 src/othermessages.js:19
+msgid "ODF text document (.odt)"
+msgstr "ODF 文字文件 (.odt)"
+
+#: src/control/Preview.js:205 src/control/Toolbar.js:26 src/othermessages.js:22
+msgid "Word 2003 Document (.doc)"
+msgstr "Word 2003 文件 (.doc)"
+
+#: src/control/Preview.js:206 src/control/Toolbar.js:27 src/othermessages.js:25
+msgid "Word Document (.docx)"
+msgstr "Word 文件 (.docx)"
+
+#: src/control/Preview.js:207 src/control/Toolbar.js:28 src/othermessages.js:28
+msgid "Rich Text (.rtf)"
+msgstr "RTF 文件 (.rtf)"
+
+#: src/control/Preview.js:208 src/control/Toolbar.js:29 src/othermessages.js:30
+msgid "EPUB Document (.epub)"
+msgstr "EPUB 電子書 (.epub)"
+
+#: src/control/Preview.js:215 src/control/Toolbar.js:34 src/othermessages.js:20
+msgid "ODF spreadsheet (.ods)"
+msgstr "ODF 試算表 (.ods)"
+
+#: src/control/Preview.js:216 src/control/Toolbar.js:35 src/othermessages.js:23
+msgid "Excel 2003 Spreadsheet (.xls)"
+msgstr "Excel 2003 試算表 (.xls)"
+
+#: src/control/Preview.js:217 src/control/Toolbar.js:36 src/othermessages.js:26
+msgid "Excel Spreadsheet (.xlsx)"
+msgstr "Excel 試算表 (.xlsx)"
+
+#: src/control/Preview.js:218 src/control/Toolbar.js:37 src/othermessages.js:29
+msgid "CSV (.csv)"
+msgstr ""
+
+#: src/control/Preview.js:225 src/control/Toolbar.js:42 src/othermessages.js:21
+msgid "ODF presentation (.odp)"
+msgstr "ODF 簡報 (.odp)"
+
+#: src/control/Preview.js:226 src/control/Toolbar.js:43 src/othermessages.js:24
+msgid "PowerPoint 2003 Presentation (.ppt)"
+msgstr "PowerPoint 2003 簡報 (.ppt)"
+
+#: src/control/Preview.js:227 src/control/Toolbar.js:44 src/othermessages.js:27
+msgid "PowerPoint Presentation (.pptx)"
+msgstr "PowerPoint 簡報 (.pptx)"
 
 #: src/control/Ruler.js:108
 msgid "Left Margin"
@@ -878,20 +751,25 @@ msgstr "左邊距"
 msgid "Right Margin"
 msgstr "右邊距"
 
-#: src/control/Toolbar.js:356 src/control/Toolbar.js:368
-#: uiconfig/dialogs/PdfWatermarkText.js:44
+#: src/control/Toolbar.js:398 src/control/Toolbar.js:410
+#: src/control/Toolbar.js:419 uiconfig/dialogs/PdfWatermarkText.js:44
 msgid "Downloading..."
 msgstr "下載中..."
 
-#: src/control/Toolbar.js:384 src/map/Map.js:1264
+#: src/control/Toolbar.js:435 src/control/Toolbar.js:453
+#: src/control/Toolbar.js:506 src/map/Map.js:1281
 msgid "Saving..."
 msgstr "儲存中..."
 
-#: src/control/Toolbar.js:395
+#: src/control/Toolbar.js:459
+msgid "The file has been saved, this encrypted file will be opened."
+msgstr "檔案已儲存，將開啟此加密文件。"
+
+#: src/control/Toolbar.js:465
 msgid "Renaming..."
 msgstr "正在更改檔名…"
 
-#: src/control/Toolbar.js:749
+#: src/control/Toolbar.js:895
 msgid "This version of %productName is powered by"
 msgstr "此 %productName 版本源自"
 
@@ -964,31 +842,115 @@ msgstr "覆寫"
 msgid "Save to new file"
 msgstr "儲存為新檔案"
 
-#: src/core/Socket.js:601
+#: src/core/Socket.js:605
 msgid "Document requires password to view."
 msgstr "文件需要密碼才能檢視。"
 
-#: src/core/Socket.js:604
+#: src/core/Socket.js:608
 msgid "Document requires password to modify."
 msgstr "文件需要密碼才能修改。"
 
-#: src/core/Socket.js:606
+#: src/core/Socket.js:610
 msgid "Hit Cancel to open in view-only mode."
 msgstr "點按「取消」以唯讀模式開啟。"
 
-#: src/core/Socket.js:610
+#: src/core/Socket.js:614
 msgid "Wrong password provided. Please try again."
 msgstr "提供的密碼錯誤。請重試。"
 
-#: src/core/Socket.js:729
+#: src/core/Socket.js:733
 msgid "Connecting..."
 msgstr "連接中..."
 
-#: src/core/Socket.js:889
+#: src/core/Socket.js:893
 msgid ""
 "Well, this is embarrassing, we cannot connect to your document. Please try "
 "again."
 msgstr "我們沒辦法連接您的文件。請重試一次。"
+
+#: src/othermessages.js:6
+msgid "Autofilter do not support in multiuser mode"
+msgstr "在共編模式下，無法使用資料篩選功能。"
+
+#: src/othermessages.js:11
+msgid "Share..."
+msgstr "分享…"
+
+#: src/othermessages.js:12
+msgid "See revision history"
+msgstr "檢視修訂記錄"
+
+#: src/othermessages.js:13
+msgid "Download as"
+msgstr "下載為"
+
+#: src/othermessages.js:14
+msgid "SecurePrint..."
+msgstr "安全列印"
+
+#: src/othermessages.js:15
+msgid "Save As Password"
+msgstr "以密碼另存新檔"
+
+#: src/othermessages.js:31
+msgid "Sign document"
+msgstr "簽署文件"
+
+#: src/othermessages.js:32
+msgid "Repair"
+msgstr "修復"
+
+#: src/othermessages.js:33
+msgid "Local Image..."
+msgstr "電腦圖片"
+
+#: src/othermessages.js:36
+msgid "All"
+msgstr "全部"
+
+#: src/othermessages.js:37
+msgid "Horizontal Line"
+msgstr "水平線"
+
+#: src/othermessages.js:38
+msgid "None (Do not check spelling)"
+msgstr "無 (不檢查拼字)"
+
+#: src/othermessages.js:39 uiconfig/dialogs/ShowKeyboardHelp.js:59
+msgid "Keyboard shortcuts"
+msgstr "鍵盤快捷鍵"
+
+#: src/othermessages.js:40
+msgid "About"
+msgstr "關於"
+
+#: src/othermessages.js:41 uiconfig/dialogs/BindingLineDialog.js:98
+msgid "Binding line"
+msgstr "裝訂線"
+
+#: src/othermessages.js:42
+msgid "Insert on the left side of page"
+msgstr "插入頁面左側"
+
+#: src/othermessages.js:43
+msgid "Insert on the right side of page"
+msgstr "插入頁面右側"
+
+#: src/othermessages.js:44
+msgid "Insert on the top side of page"
+msgstr "插入頁面上方"
+
+#: src/othermessages.js:45
+msgid "Insert on the bottom side of page"
+msgstr "插入頁面底部"
+
+#: src/othermessages.js:46
+msgid "Customize"
+msgstr "自訂"
+
+#: src/othermessages.js:47
+msgid "Hand-drawn diagram"
+msgstr "手繪圖表"
 
 #: src/errormessages.js:13
 msgid ""
@@ -1072,7 +1034,7 @@ msgstr "有問題的連結：'%url'"
 
 #: src/errormessages.js:27
 msgid "You are leaving the editor, are you sure you want to proceed?"
-msgstr ""
+msgstr "確定要離開編輯器嗎？"
 
 #: src/errormessages.js:30
 #, javascript-format
@@ -1099,6 +1061,41 @@ msgid ""
 "server administrator."
 msgstr "文件無法儲存。請檢查您的權限，或請聯絡儲存空間伺服器管理員。"
 
+#: src/errormessages.js:34
+msgid ""
+"The document could not be saved. This certification has expired or is "
+"invalid. Please reopen this file."
+msgstr "文件無法儲存，此認證已到期或失效，請重新開啟此檔案。"
+
+#: src/errormessages.js:35
+msgid ""
+"The file cannot be saved. Because the content of the file contains personal "
+"information or suspected sensitive information, it is recommended to adjust "
+"the content before saving."
+msgstr "文件無法儲存，因檔案內容包含個資或疑似敏感資料，建議調整內容後再存檔。"
+
+#: src/errormessages.js:36
+msgid ""
+"The file cannot be saved. It may not have write permission for this file. "
+"Please contact the file sharer."
+msgstr "文件無法儲存，可能此檔案無寫入權限，請洽檔案分享者。"
+
+#: src/errormessages.js:37
+msgid ""
+"The file could not be saved. It may be that the file capacity has exceeded "
+"the upload limit."
+msgstr "文件無法儲存，可能是檔案容量已超過上傳限制。"
+
+#: src/errormessages.js:38
+msgid ""
+"Server error or connection timeout, the document cannot be saved "
+"temporarily. Please try again later."
+msgstr "伺服器錯誤或連線逾時，文件暫時無法儲存，請稍後再試。"
+
+#: src/errormessages.js:39
+msgid "This operation is not supported, please contact the administrator."
+msgstr "不支援此操作，請洽詢管理員。"
+
 #: src/layer/marker/Annotation.js:210
 msgid "Accept change"
 msgstr "接受更改"
@@ -1123,35 +1120,47 @@ msgstr "修改"
 msgid "Remove"
 msgstr "移除"
 
-#: src/map/Map.js:228
+#: src/layer/tile/TileLayer.js:885
+msgid "This type of picture editing is not yet supported."
+msgstr "尚未支援此種圖片格式的編輯"
+
+#: src/layer/tile/TileLayer.js:903
+msgid "unnamed"
+msgstr "未命名"
+
+#: src/layer/tile/TileLayer.js:3168
+msgid "Do you want to compress the image? (Except SVG File)"
+msgstr "請問是否需要壓縮圖片？(此功能不支援 SVG 檔)"
+
+#: src/map/Map.js:233
 msgid "Initializing..."
 msgstr "初始化中..."
 
-#: src/map/Map.js:346
+#: src/map/Map.js:363
 msgid "Last modification"
 msgstr "最後修改"
 
-#: src/map/Map.js:386
+#: src/map/Map.js:403
 msgid "seconds ago"
 msgstr "秒前"
 
-#: src/map/Map.js:389
+#: src/map/Map.js:406
 msgid "minutes ago"
 msgstr "分鐘前"
 
-#: src/map/Map.js:848
+#: src/map/Map.js:865
 msgid "Please enter a command starting with \".uno:\" or \"macro:///\""
 msgstr "請輸入 \".uno:\" 或 \"macro:///\" 開頭的指令"
 
-#: src/map/Map.js:851
+#: src/map/Map.js:868
 msgid "Invalid Command."
 msgstr "不合法的命令"
 
-#: src/map/Map.js:1124
+#: src/map/Map.js:1141
 msgid "Inactive document - please click to resume editing"
-msgstr "非使用中文件 - 請點按按鍵繼續編輯"
+msgstr "文件閒置中 - 請點按按鍵繼續"
 
-#: src/map/Map.js:1267
+#: src/map/Map.js:1284
 msgid "Loading..."
 msgstr "載入中..."
 
@@ -1159,15 +1168,15 @@ msgstr "載入中..."
 msgid "Uploading..."
 msgstr "上傳中..."
 
-#: src/map/handler/Map.WOPI.js:105
+#: src/map/handler/Map.WOPI.js:107
 msgid "Creating new file from template..."
 msgstr "從範本建立新文件…"
 
-#: src/map/handler/Map.WOPI.js:320
+#: src/map/handler/Map.WOPI.js:322 src/map/handler/Map.WOPI.js:333
 msgid "Creating copy..."
 msgstr "製作副本中..."
 
-#: uiconfig/dialogs/Action.js:90
+#: uiconfig/dialogs/Action.js:101
 msgid "Are you sure you want to delete this slide?"
 msgstr "確定要刪除此投影片？"
 
@@ -1250,9 +1259,10 @@ msgid "cm"
 msgstr "公分"
 
 #: uiconfig/dialogs/BindingLineDialog.js:99 uiconfig/dialogs/ColumnWidth.js:31
-#: uiconfig/dialogs/DeleteCell.js:51 uiconfig/dialogs/InsertCell.js:27
-#: uiconfig/dialogs/PdfWatermarkText.js:26 uiconfig/dialogs/RemoveCell.js:27
-#: uiconfig/dialogs/RowHeight.js:31
+#: uiconfig/dialogs/DeleteCell.js:51 uiconfig/dialogs/HeaderAndFooter.js:65
+#: uiconfig/dialogs/InsertCell.js:27 uiconfig/dialogs/PdfWatermarkText.js:26
+#: uiconfig/dialogs/RemoveCell.js:27 uiconfig/dialogs/RowHeight.js:31
+#: uiconfig/dialogs/SetTabBgColor.js:24 uiconfig/dialogs/SplitCell.js:55
 msgid "Close"
 msgstr "關閉"
 
@@ -1294,6 +1304,108 @@ msgstr "格式"
 msgid "Objects"
 msgstr "物件"
 
+#: uiconfig/dialogs/DiagramEditor.js:63
+msgid "Diagram editor module not installed!"
+msgstr "圖表編輯器模組未安裝！"
+
+#: uiconfig/dialogs/dlgSecurePrint.js:24
+msgid "maskEmail"
+msgstr "遮蔽郵件"
+
+#: uiconfig/dialogs/dlgSecurePrint.js:25
+msgid "maskAddress"
+msgstr "遮蔽地址"
+
+#: uiconfig/dialogs/dlgSecurePrint.js:26
+msgid "maskPhone"
+msgstr "遮蔽電話"
+
+#: uiconfig/dialogs/dlgSecurePrint.js:27
+msgid "extraRule"
+msgstr "自定義遮蔽"
+
+#: uiconfig/dialogs/dlgSecurePrint.js:28
+msgid "input ex:AAA;BBB"
+msgstr "輸入 例:AAA;BBB"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:36
+#, fuzzy
+msgid "Date and time"
+msgstr "日期和時間"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:37
+msgid "Fixed"
+msgstr "固定"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:38
+msgid "input ex:2019/01/01(no comma,space symbols)"
+msgstr "請填寫 ex:2019/01/01(逗號,空白無法使用)"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:39
+msgid "Variable"
+msgstr "變數"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:40
+#, fuzzy
+msgid "Format"
+msgstr "格式"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:42
+msgid "Language"
+msgstr "語言"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:43
+msgid "Chinese(zh-TW)"
+msgstr "正體中文"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:44
+msgid "English(en)"
+msgstr "英語(美)"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:46
+msgid "Footer"
+msgstr "頁尾"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:47
+msgid "Footer text"
+msgstr "頁尾文字"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:47
+msgid "input any string(no comma,space symbols)"
+msgstr "請填寫任意字串(逗號,空白無法使用)"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:48
+msgid "Slide number"
+msgstr "投影片編號"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:49
+msgid "Do not show on the first slide"
+msgstr "首張投影片不顯示"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:64
+msgid "Header and Footer"
+msgstr "頁首與頁尾"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:78
+msgid "Apply to All"
+msgstr "全部套用"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:159
+msgid "Include on Slide"
+msgstr "頁首與頁尾"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:188
+msgid "year"
+msgstr "年"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:188
+msgid "month"
+msgstr "月"
+
+#: uiconfig/dialogs/HeaderAndFooter.js:188
+msgid "day"
+msgstr "日"
+
 #: uiconfig/dialogs/InsertBreak.js:27
 msgid "Line break"
 msgstr "斷行"
@@ -1326,6 +1438,10 @@ msgstr "整列"
 msgid "Entire column"
 msgstr "整欄"
 
+#: uiconfig/dialogs/InsertImage.js:20
+msgid "Compress Image(not support SVG)"
+msgstr "壓縮圖片(不支援 SVG)"
+
 #: uiconfig/dialogs/InsertTable.js:22
 msgid "Before current sheet"
 msgstr "在目前的工作表之前"
@@ -1342,7 +1458,7 @@ msgstr "工作表"
 msgid "No. of sheets"
 msgstr "工作表數"
 
-#: uiconfig/dialogs/InsertTable.js:29
+#: uiconfig/dialogs/InsertTable.js:29 uiconfig/dialogs/RenameSlide.js:22
 msgid "Name"
 msgstr "名稱"
 
@@ -1358,7 +1474,7 @@ msgstr "複製"
 msgid "Insert before"
 msgstr "前置於"
 
-#: uiconfig/dialogs/OXSaveAs.js:24
+#: uiconfig/dialogs/OXSaveAs.js:25 uiconfig/dialogs/OXSaveAs.js:48
 msgid "Please enter a new filename."
 msgstr "請輸入新的檔案名稱"
 
@@ -1373,6 +1489,38 @@ msgstr "如果不需要，請保持空白。"
 #: uiconfig/dialogs/PdfWatermarkText.js:25
 msgid "Add watermark"
 msgstr "加入浮水印"
+
+#: uiconfig/dialogs/ProtectTable.js:23
+msgid "Confirm"
+msgstr "確認"
+
+#: uiconfig/dialogs/ProtectTable.js:27
+msgid "Allow all users of this sheet to"
+msgstr "允許此工作表的所有使用者"
+
+#: uiconfig/dialogs/ProtectTable.js:28
+msgid "Select Protected Cells"
+msgstr "選取受保護的儲存格"
+
+#: uiconfig/dialogs/ProtectTable.js:29
+msgid "Select Unprotected Cells"
+msgstr "選取未受保護的儲存格"
+
+#: uiconfig/dialogs/ProtectTable.js:30
+msgid "Insert Column"
+msgstr "插入欄"
+
+#: uiconfig/dialogs/ProtectTable.js:31
+msgid "Insert Row"
+msgstr "插入列"
+
+#: uiconfig/dialogs/ProtectTable.js:32
+msgid "Delete Column"
+msgstr "刪除欄"
+
+#: uiconfig/dialogs/ProtectTable.js:33
+msgid "Delete Row"
+msgstr "刪除列"
 
 #: uiconfig/dialogs/RemoveCell.js:19
 msgid "Shift cells up"
@@ -1394,13 +1542,59 @@ msgstr "刪除整欄"
 msgid "Are you sure you want to delete sheet, %sheet% ?"
 msgstr "您確定要刪除這份工作表：%sheet%？"
 
+#: uiconfig/dialogs/RenameSlide.js:45
+msgid "The slide name must not be empty or a duplicate of an existing name."
+msgstr "投影片名稱不能空白，或是和現有名稱重複"
+
 #: uiconfig/dialogs/RowHeight.js:19
 msgid "Height"
 msgstr "高度"
 
+#: uiconfig/dialogs/RowOrColGroup.js:28
+msgid "Include"
+msgstr "包括"
+
+#: uiconfig/dialogs/RowOrColGroup.js:30
+#, fuzzy
+msgid "Row"
+msgstr "列"
+
+#: uiconfig/dialogs/RowOrColGroup.js:32
+#, fuzzy
+msgid "Column"
+msgstr "欄"
+
+#: uiconfig/dialogs/SetHyperLinkTable.js:26
+msgid "Worksheet link not supported!"
+msgstr "不支援工作表連結"
+
+#: uiconfig/dialogs/SetHyperLinkTable.js:76
+msgid "Text to display"
+msgstr "要顯示的文字"
+
+#: uiconfig/dialogs/SetHyperLinkTable.js:78
+msgid "Cell"
+msgstr "儲存格"
+
+#: uiconfig/dialogs/SetHyperLinkTable.js:111
+msgid "Please select the target worksheet."
+msgstr "請選擇目標工作表"
+
+#: uiconfig/dialogs/SetTabBgColor.js:63
+msgid "Default"
+msgstr "預設"
+
 #: uiconfig/dialogs/ShowTable.js:29
 msgid "Hidden Sheets"
 msgstr "隱藏的工作表"
+
+#: uiconfig/dialogs/SplitCell.js:25
+msgid "Columns"
+msgstr "欄數"
+
+#: uiconfig/dialogs/SplitCell.js:30
+msgid "Rows"
+msgstr "列數"
 
 #: uiconfig/dialogs/TraceChangeMode.js:41
 msgid "Stop tracking changes, will lose information about the changes."
@@ -1409,6 +1603,9 @@ msgstr "停止追蹤修訂，將會遺失所有更改的資訊。"
 #: uiconfig/dialogs/TraceChangeMode.js:44
 msgid "Warning"
 msgstr "警告"
+
+#~ msgid "File type"
+#~ msgstr "檔案類型"
 
 #~ msgid "Are you sure you want to delete this page?"
 #~ msgstr "您確定要刪除這個頁面？"

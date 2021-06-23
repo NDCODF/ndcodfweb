@@ -122,6 +122,11 @@ L.Control.ContextMenu = L.Control.extend({
 		var isLastItemText = false;
 		for (var idx in obj.menu) {
 			var item = obj.menu[idx];
+
+			if (item.command === '.uno:Paste' && docType === 'spreadsheet') {
+				item.enabled = 'true';
+			}
+
 			if (item.enabled === 'false') {
 				continue;
 			}
@@ -219,7 +224,7 @@ L.installContextMenu = function(options) {
 				continue;
 			if (!items[key].isHtmlName) {
 				console.debug('re-write name ' + items[key].name);
-				items[key].name = '<a href="#" class="context-menu-link">' + items[key].name + '</a';
+				items[key].name = '<span>' + items[key].name + '</span>';
 				items[key].isHtmlName = true;
 			}
 			rewrite(items[key].items);

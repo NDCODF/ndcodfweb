@@ -176,6 +176,8 @@ bool ClientSession::_handleInput(const char *buffer, int length)
              tokens[0] != "gettextselection" &&
              tokens[0] != "paste" &&
              tokens[0] != "insertfile" &&
+             tokens[0] != "insertpicture" &&
+             tokens[0] != "changepicture" &&
              tokens[0] != "key" &&
              tokens[0] != "textinput" &&
              tokens[0] != "windowkey" &&
@@ -209,6 +211,7 @@ bool ClientSession::_handleInput(const char *buffer, int length)
              tokens[0] != "signdocument" &&
              tokens[0] != "asksignaturestatus" &&
              tokens[0] != "rendershapeselection" &&
+             tokens[0] != "getgraphicgelection" &&
              tokens[0] != "removesession" &&
              tokens[0] != "renamefile")
     {
@@ -558,7 +561,9 @@ bool ClientSession::loadDocument(const char* /*buffer*/, int /*length*/,
 
         if (getHaveDocPassword())
         {
-            oss << " password=" << getDocPassword();
+            std::string encodePassword;
+            Poco::URI::encode(getDocPassword(), "", encodePassword);
+            oss << " password=" << encodePassword;
         }
 
         if (!getLang().empty())
@@ -754,6 +759,10 @@ bool ClientSession::filterMessage(const std::string& message) const
             {
                 allowed = true;
             }
+        }
+        else if (tokens.count() > 1 && tokens[0] == "setpage")
+        {
+            allowed = true;
         }
     }
 
@@ -1134,7 +1143,7 @@ bool ClientSession::handleKitToClientMessage(const char* buffer, const int lengt
         }
         else if (tokens[0] == "invalidatecursor:")
         {
-            assert(firstLine.size() == static_cast<std::string::size_type>(length));
+            //assert(firstLine.size() == static_cast<std::string::size_type>(length));
 
             const size_t index = firstLine.find_first_of('{');
             const std::string stringJSON = firstLine.substr(index);
